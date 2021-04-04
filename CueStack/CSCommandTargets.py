@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # CueStack Targets
 
-#    Copyright (C) 2020 James Bishop (james@bishopdynamics.com)
+#    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 
 # ignore rules:
 #   docstring

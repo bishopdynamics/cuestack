@@ -2,8 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1b57d334-fd2e-4229-91ba-412ec9759c26" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CSCommandTargets.py" beforeDir="false" afterPath="$PROJECT_DIR$/CSCommandTargets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CSMessageProcessor.py" beforeDir="false" afterPath="$PROJECT_DIR$/CSMessageProcessor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CSTriggerSources.py" beforeDir="false" afterPath="$PROJECT_DIR$/CSTriggerSources.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CueStack.py" beforeDir="false" afterPath="$PROJECT_DIR$/CueStack.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ViscaAgent.py" beforeDir="false" afterPath="$PROJECT_DIR$/ViscaAgent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ViscaAgentMessageProcessor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ViscaAgentMessageProcessor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VoicemeeterAgent.py" beforeDir="false" afterPath="$PROJECT_DIR$/VoicemeeterAgent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/VoicemeeterAgentMessageProcessor.py" beforeDir="false" afterPath="$PROJECT_DIR$/VoicemeeterAgentMessageProcessor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

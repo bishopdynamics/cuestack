@@ -2,7 +2,7 @@
 # Voicemeeter Agent
 #  serves as a websocket bridge for controlling voicemeeter
 
-#    Copyright (C) 2020 James Bishop (james@bishopdynamics.com)
+#    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 
 # ignore rules:
 #   docstring

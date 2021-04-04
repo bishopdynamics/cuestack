@@ -1,33 +1,20 @@
-#! /usr/bin/env python
-# -*- coding: utf8 -*-
-#
-#    PyVisca-3 Implementation of the Visca serial protocol in python3
-#    based on PyVisca (Copyright (C) 2013  Florian Streibelt 
-#    pyvisca@f-streibelt.de).
-#
-#    Author: Giacomo Benelli benelli.giacomo@aerialtronics.com
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, version 2 only.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
+#!/usr/bin/env python3
+# Visca Agent
+#  serves as a websocket bridge for controlling cameras compatible with Sony Visca protocol
 
-"""PyVisca-3 by Giacomo Benelli <benelli.giacomo@gmail.com>"""
+#    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 
-#
-# This is used for testing the functionality while developing,
-# expect spaghetti code... this applied for the original author and 
-# for me too... :)
-#
+# ignore rules:
+#   docstring
+#   too-broad-exception
+#   line-too-long
+#   too-many-branches
+#   too-many-statements
+#   too-many-public-methods
+#   too-many-lines
+#   too-many-nested-blocks
+#   toddos (annotations linter handling this)
+# pylint: disable=C0111,W0703,C0301,R0912,R0915,R0904,C0302,R1702,W0511
 
 import sys
 import json

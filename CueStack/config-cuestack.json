@@ -75,7 +75,7 @@
         },
         {
           "name": "scene1_inactive",
-          "enabled": false,
+          "enabled": true,
           "parts": [
             {
               "target": "obs",
@@ -341,7 +341,7 @@
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "voicemeeter",
       "type": "websocket-generic",
       "config": {

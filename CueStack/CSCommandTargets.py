@@ -238,24 +238,28 @@ class CSTargetGenericWebsocket:
             logging.info('sending Generic Websocket message (%s): %s' % (self.host, actual_message))
             self.ws.send(actual_message)
             reply = self.ws.recv_frame().data
-            reply_decoded = self.decode_reply(reply)
-            if reply_decoded['status'] != 'OK':
-                logging.warn('websocket send failed (%s), will reconnect and retry' % reply_decoded['status'])
-                raise Exception('failed to send message')
-            logging.debug('websocket send got reply: OK')
+            logging.debug('reply from Generic Websocket: %s' % reply)
+            # reply_decoded = self.decode_reply(reply)
+            # if reply_decoded['status'] != 'OK':
+            #     logging.warning('websocket send failed (%s), will reconnect and retry' % reply_decoded['status'])
+            #     raise Exception('failed to send message')
+            # logging.debug('websocket send got reply: OK')
         except Exception as ex:
             logging.error('exception while trying to send Generic Websocket message: (%s), will reconnect and retry' % ex)
             self.retry(actual_message)
 
     def retry(self, message):
-        self.reconnect()
-        logging.info('sending Generic Websocket message (%s): %s' % (self.host, message))
-        self.ws.send(message)
-        reply = self.ws.recv_frame().data
-        reply_decoded = self.decode_reply(reply)
-        if reply_decoded['status'] != 'OK':
-            logging.error('websocket send failed (%s) on retry, giving up' % reply_decoded['status'])
-            raise Exception('websocket send failed twice')
+        try:
+            self.reconnect()
+            logging.info('sending Generic Websocket message (%s): %s' % (self.host, message))
+            self.ws.send(message)
+            reply = self.ws.recv_frame().data
+            logging.debug('reply from Generic Websocket (second attempt): %s' % reply)
+            # reply_decoded = self.decode_reply(reply)
+            # if reply_decoded['status'] != 'OK':
+            #     raise Exception('websocket send failed twice')
+        except Exception as ex:
+            logging.error('Generic Websocket send failed (%s) on retry, giving up' % ex)
 
     def reconnect(self):
         logging.debug('reconnecting websocket: %s' % self.host)

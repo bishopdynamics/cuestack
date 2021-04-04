@@ -34,7 +34,7 @@ Another example, you are hosting a quiz show with four participants, on a web st
 ![Diagram](docs/mindmap.png)
 
 ## Config
-Configuration is stored in a single file: `config.json`. It contains four top-level keys: `default_stack`, `stacks`, `trigger_sources`, and `command_targets`. Here is an example:
+Configuration is stored in a single file: `config-cuestack.json`. It contains four top-level keys: `default_stack`, `stacks`, `trigger_sources`, and `command_targets`. Here is an example:
 ```json
 {
   "default_stack": "StackA",
@@ -43,7 +43,7 @@ Configuration is stored in a single file: `config.json`. It contains four top-le
       "name": "StackA",
       "cues": [
         {
-          "name": "winter_ball":
+          "name": "winter_ball",
           "parts": [
             {
               "target": "tcp-example",
@@ -58,7 +58,17 @@ Configuration is stored in a single file: `config.json`. It contains four top-le
     {
       "name": "StackB",
       "cues": [
-        ...
+        {
+          "name": "winter_ball",
+          "parts": [
+            {
+              "target": "tcp-example",
+              "command": {
+                "message": "i am NOT the walrus"
+              }
+            }
+          ]
+        }
       ]
     }
   ],

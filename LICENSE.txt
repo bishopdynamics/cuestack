@@ -1,0 +1,6 @@
+Proprietary Property
+Copyright (C) 2021 by James Bishop (james@bishopdynamics.com)
+
+The software included in this source repository is proprietary property of James Bishop (james@bishopdynamics.com). It is allowed for use by granted licensees only. Distribution of any kind is strictly prohibited without prior written consent from the owner. Derivative works are strictly prohibited.
+
+This specific copy of the software is licensed for exclusive use by Torpid Gaming Network.

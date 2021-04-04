@@ -277,7 +277,7 @@
   ],
   "command_targets": [
     {
-      "enabled": true,
+      "enabled": false,
       "name": "obs",
       "type": "obs-websocket",
       "config": {

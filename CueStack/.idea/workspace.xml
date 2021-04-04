@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1b57d334-fd2e-4229-91ba-412ec9759c26" name="Default Changelist" comment="" />
+    <list default="true" id="1b57d334-fd2e-4229-91ba-412ec9759c26" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/config-cuestack.json" beforeDir="false" afterPath="$PROJECT_DIR$/config-cuestack.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

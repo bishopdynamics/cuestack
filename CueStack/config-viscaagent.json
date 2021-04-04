@@ -1,0 +1,32 @@
+{
+  "serial_port": "/dev/serial/by-id/usb-Twiga_TWIGACam-if03-port0",
+  "device_id": 1,
+  "command_sources": [
+    {
+      "enabled": true,
+      "name": "GenericWebsocket1",
+      "type": "websocket",
+      "config": {
+        "port": 9901
+      }
+    },
+    {
+      "enabled": false,
+      "name": "GenericHTTP",
+      "type": "http",
+      "config": {
+        "port": 9902
+      }
+    },
+    {
+      "enabled": false,
+      "name": "GenericMQTT",
+      "type": "mqtt",
+      "config": {
+        "host": "james-broker",
+        "port": 1883,
+        "topic": "ViscaAgent"
+      }
+    }
+  ]
+}

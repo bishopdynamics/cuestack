@@ -21,16 +21,16 @@ import logging
 import voicemeeter
 
 
-class VMAMessageProcessor:
+class VoicemeeterAgentMessageProcessor:
     # The Voicemeeter Agent has its own message processor
     def __init__(self, config):
-        logging.debug('Initializing a VMAMessageProcessor')
+        logging.debug('Initializing a VoicemeeterAgentMessageProcessor')
         self.config = config
         try:
             logging.info('making sure voicemeeter %s is open' % self.config['voicemeeter_kind'])
             voicemeeter.launch(self.config['voicemeeter_kind'])
         except Exception as ex:
-            logging.error('exception while setting up VMAMessageProcessor: %s' % ex)
+            logging.error('exception while setting up VoicemeeterAgentMessageProcessor: %s' % ex)
             raise ex
 
     def handle(self, _msg):

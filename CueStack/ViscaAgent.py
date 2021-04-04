@@ -1,21 +1,33 @@
-#!/usr/bin/env python3
-# Voicemeeter Agent
-#  serves as a websocket bridge for controlling voicemeeter
+#! /usr/bin/env python
+# -*- coding: utf8 -*-
+#
+#    PyVisca-3 Implementation of the Visca serial protocol in python3
+#    based on PyVisca (Copyright (C) 2013  Florian Streibelt 
+#    pyvisca@f-streibelt.de).
+#
+#    Author: Giacomo Benelli benelli.giacomo@aerialtronics.com
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 2 only.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+#    USA
 
-#    Copyright (C) 2020 James Bishop (james@bishopdynamics.com)
+"""PyVisca-3 by Giacomo Benelli <benelli.giacomo@gmail.com>"""
 
-# ignore rules:
-#   docstring
-#   too-broad-exception
-#   line-too-long
-#   too-many-branches
-#   too-many-statements
-#   too-many-public-methods
-#   too-many-lines
-#   too-many-nested-blocks
-#   toddos (annotations linter handling this)
-# pylint: disable=C0111,W0703,C0301,R0912,R0915,R0904,C0302,R1702,W0511
-
+#
+# This is used for testing the functionality while developing,
+# expect spaghetti code... this applied for the original author and 
+# for me too... :)
+#
 
 import sys
 import json
@@ -24,34 +36,30 @@ import asyncio
 import logging
 import argparse
 import pathlib
-import platform
-
-if platform.system() == 'Windows':
-    import win32api
 
 from CSLogger import get_logger
 from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
-from VoicemeeterAgentMessageProcessor import VoicemeeterAgentMessageProcessor
+from ViscaAgentMessageProcessor import ViscaAgentMessageProcessor
 
 
-class VoicemeeterAgent:
+class ViscaAgent:
     config = None  # parsed config lives here
     command_sources = {}  # objects managing a connection to a command source live here
 
     def __init__(self):
-        logging.info('Voicemeeter Agent is starting...')
+        logging.info('Visca Agent is starting...')
         path_base = pathlib.Path(__file__).parent.absolute()
-        config_file = path_base.joinpath('config-voicemeeteragent.json')
+        config_file = path_base.joinpath('config-viscaagent.json')
         try:
             with open(config_file, 'r') as cf:
                 self.config = json.load(cf)
         except Exception as e:
-            logging.error('exception while parsing config-voicemeeteragent.json: %s' % e)
+            logging.error('exception while parsing config-viscaagent.json: %s' % e)
             sys.exit(1)
         try:
             logging.info('setting up structures')
             self.loop = asyncio.new_event_loop()
-            self.msg_processor = VoicemeeterAgentMessageProcessor(self.config)
+            self.msg_processor = ViscaAgentMessageProcessor(self.config)
             self.setup_command_sources()
 
         except Exception as ex:
@@ -67,7 +75,7 @@ class VoicemeeterAgent:
         except KeyboardInterrupt:
             pass
         except Exception as ex:
-            logging.error('Unexpected Exception while setting up Voicemeeter Agent: %s', ex)
+            logging.error('Unexpected Exception while setting up Visca Agent: %s', ex)
             self.stop()
 
     def setup_command_sources(self):
@@ -123,19 +131,12 @@ class VoicemeeterAgent:
             self.loop.close()
         except Exception:
             pass
-        logging.info('Voicemeeter Agent shutdown complete')
-
-
-def handle_windows_signal(a, b=None):
-    logging.info('caught windows idea of a signal, you probably need to press ctrl+c again')
-    sys.exit()
+        logging.info('Visca Agent shutdown complete')
 
 
 if __name__ == "__main__":
-    # this is the main entry point for Voicemeeter Agent
-    if platform.system() == 'Windows':
-        win32api.SetConsoleCtrlHandler(handle_windows_signal, True)
-    ARG_PARSER = argparse.ArgumentParser(description='Voicemeeter Agent')
+    # this is the main entry point for Visca Agent
+    ARG_PARSER = argparse.ArgumentParser(description='Visca Agent')
     ARG_PARSER.add_argument('-m', dest='mode', action='store',
                             type=str, default='prod', choices=['prod', 'dev'],
                             help='which mode to run in')
@@ -147,4 +148,4 @@ if __name__ == "__main__":
     logger = get_logger(name=__name__,
                         level=LOG_LEVEL)
     assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
-    VMA = VoicemeeterAgent()
+    VA = ViscaAgent()

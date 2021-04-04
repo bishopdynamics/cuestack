@@ -1,5 +1,42 @@
 # CueStack
 
+## Table of Contents
+
+   * [CueStack](#cuestack)
+      * [Intro to CueStack](#intro-to-cuestack)
+      * [Vocabulary](#vocabulary)
+      * [Limitations](#limitations)
+      * [Conceptual Diagram](#conceptual-diagram)
+      * [Config](#config)
+      * [Trigger Sources](#trigger-sources)
+         * [Websocket](#websocket)
+         * [HTTP GET](#http-get)
+         * [MQTT](#mqtt)
+      * [Command Targets](#command-targets)
+         * [OBS Studio via obs-websocket plugin](#obs-studio-via-obs-websocket-plugin)
+            * [Cue part](#cue-part)
+            * [Config](#config-1)
+         * [Generic OSC](#generic-osc)
+            * [Cue Part](#cue-part-1)
+            * [Config](#config-2)
+         * [Generic UDP](#generic-udp)
+            * [Cue Part](#cue-part-2)
+            * [Config](#config-3)
+         * [Generic TCP](#generic-tcp)
+            * [Cue Part](#cue-part-3)
+            * [Config](#config-4)
+         * [HTTP GET](#http-get-1)
+            * [Cue Part](#cue-part-4)
+            * [Config](#config-5)
+         * [Generic Websocket](#generic-websocket)
+            * [Cue Part](#cue-part-5)
+            * [Config](#config-6)
+         * [MQTT](#mqtt-1)
+            * [Cue Part](#cue-part-6)
+            * [Config](#config-7)
+      * [Voicemeeter Agent](#voicemeeter-agent)
+      * [Visca Agent](#visca-agent)
+
 ## Intro to CueStack
 Inspired by an old tool called Cue Composer, this project seeks to provide a middle component as part of a whole production coordination system. 
 The stack system is intended to allow you to build out multiple versions of the same cues, with the stack representing overall context. 

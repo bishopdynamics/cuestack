@@ -1,0 +1,9 @@
+# requirements for this project
+websockets
+attr
+obs-websocket-py
+python-osc
+aiohttp
+websocket-client
+paho-mqtt
+toml

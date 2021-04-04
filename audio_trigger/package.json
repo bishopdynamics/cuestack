@@ -1,0 +1,19 @@
+{
+  "name": "switchWeb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "obs-websocket-js": "^4.0.1",
+    "reconnecting-websocket": "^4.4.0",
+    "socket.io": "^2.3.0",
+    "ws": "^7.4.3"
+  }
+}

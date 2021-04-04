@@ -1,0 +1,26 @@
+body{
+    background-color: white;
+}
+
+.iframes{
+    text-align: center;
+    height: 100%;
+    width: 100%;
+}
+
+#RangeDb{
+    text-align: center;
+    width: 40vw;
+}
+
+#trigger-name{
+    width: 200px;
+}
+
+#scene{
+    width: 200px;
+}
+
+input[select]{
+    width: 30vw;
+}

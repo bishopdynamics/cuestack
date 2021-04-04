@@ -1,0 +1,389 @@
+{
+  "default_stack": "StackOne",
+  "stacks": [
+    {
+      "name": "StackOne",
+      "cues": [
+        {
+          "name": "scene1_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave1",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            },
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew1"
+              }
+            },
+            {
+              "target": "http-example",
+              "enabled": false,
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "path": "someendpoint",
+                  "params": {
+                    "param1": "foo",
+                    "param2": "bar"
+                  }
+                }
+              }
+            },
+            {
+              "target": "websocket-example",
+              "enabled": false,
+              "command": {
+                "message": "{\"msg\": \"hello\"}"
+              }
+            },
+            {
+              "target": "mqtt-example",
+              "enabled": false,
+              "command": {
+                "topic": "testtopic",
+                "message": "greetings from scene1_active"
+              }
+            },
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": false,
+                      "A1": true,
+                      "A2": true,
+                      "A3": false,
+                      "A4": false,
+                      "gain": -42.6
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_inactive",
+          "enabled": false,
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave1",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene2_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave2",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            },
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew2",
+                "value": 42
+              }
+            },
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": true,
+                      "A1": false,
+                      "A2": false,
+                      "A3": true,
+                      "A4": true,
+                      "gain": 1.4
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene2_inactive",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave2",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "foobar",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "foobar_v1"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "deadbeef",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "deadbeef_v1"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "StackTwo",
+      "cues": [
+        {
+          "name": "scene1_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave1",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_inactive",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave1",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene2_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave2",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene2_inactive",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave2",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "foobar",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "foobar_v2"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "deadbeef",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "deadbeef_v2"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "command_targets": [
+    {
+      "enabled": true,
+      "name": "obs",
+      "type": "obs-websocket",
+      "config": {
+        "host": "localhost",
+        "port": 4444,
+        "password": "secret"
+      }
+    },
+    {
+      "enabled": false,
+      "name": "qlcplus",
+      "type": "osc-generic",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 7703
+      }
+    },
+    {
+      "enabled": false,
+      "name": "tcp-example",
+      "type": "tcp-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8103
+      }
+    },
+    {
+      "enabled": false,
+      "name": "udp-example",
+      "type": "udp-generic",
+      "config": {
+        "host": "localhost",
+        "port": 9191
+      }
+    },
+    {
+      "enabled": false,
+      "name": "http-example",
+      "type": "http-generic",
+      "config": {
+        "host": "localhost",
+        "port": 9090
+      }
+    },
+    {
+      "enabled": false,
+      "name": "websocket-example",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8113
+      }
+    },
+    {
+      "enabled": false,
+      "name": "mqtt-example",
+      "type": "mqtt-generic",
+      "config": {
+        "host": "james-broker",
+        "port": 1883
+      }
+    },
+    {
+      "enabled": false,
+      "name": "voicemeeter",
+      "type": "websocket-generic",
+      "config": {
+        "host": "192.168.1.74",
+        "port": 9901
+      }
+    }
+  ],
+  "trigger_sources": [
+    {
+      "enabled": true,
+      "name": "GenericWebsocket1",
+      "type": "websocket",
+      "config": {
+        "port": 8081
+      }
+    },
+    {
+      "enabled": false,
+      "name": "GenericWebsocket2",
+      "type": "websocket",
+      "config": {
+        "port": 8082
+      }
+    },
+    {
+      "enabled": true,
+      "name": "GenericHTTP",
+      "type": "http",
+      "config": {
+        "port": 8080
+      }
+    },
+    {
+      "enabled": false,
+      "name": "GenericMQTT",
+      "type": "mqtt",
+      "config": {
+        "host": "james-broker",
+        "port": 1883,
+        "topic": "CueStackTrigger"
+      }
+    }
+  ]
+}

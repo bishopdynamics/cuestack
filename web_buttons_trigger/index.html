@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Buttons Trigger</title>
+        <meta name = "viewport" content = "width = device-width, initial-scale = 1"> 
+        <style>
+            .page-body {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                position: absolute;
+                z-index: 1000;
+            }
+        </style>
+    </head>
+    <body class="page-body">
+        <div>
+            <h2>Stacks</h2>
+            <span id="current-stack"></span>
+            <table id="stacks-table"></table>
+        </div>
+        <div>
+            <h2>Cues</h2>
+            <table id="cues-table"></table>
+        </div>
+        <div>
+            <h3>Websocket Status</h3>
+            <span id="websocket-status"></span>
+        </div>
+        <script src="reconnecting-websocket.js"></script>
+        <script src="javascript.js"></script>
+    </body>
+</html>
+

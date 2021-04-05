@@ -17,59 +17,6 @@
                   "filterEnabled": true
                 }
               }
-            },
-            {
-              "target": "qlcplus",
-              "command": {
-                "address": "/1/brew1"
-              }
-            },
-            {
-              "target": "http-example",
-              "enabled": false,
-              "command": {
-                "message_type": "dict",
-                "message": {
-                  "path": "someendpoint",
-                  "params": {
-                    "param1": "foo",
-                    "param2": "bar"
-                  }
-                }
-              }
-            },
-            {
-              "target": "websocket-example",
-              "enabled": false,
-              "command": {
-                "message": "{\"msg\": \"hello\"}"
-              }
-            },
-            {
-              "target": "mqtt-example",
-              "enabled": false,
-              "command": {
-                "topic": "testtopic",
-                "message": "greetings from scene1_active"
-              }
-            },
-            {
-              "target": "voicemeeter",
-              "command": {
-                "message_type": "dict",
-                "message": {
-                  "apply": {
-                    "in-0": {
-                      "mute": false,
-                      "A1": true,
-                      "A2": true,
-                      "A3": false,
-                      "A4": false,
-                      "gain": -42.6
-                    }
-                  }
-                }
-              }
             }
           ]
         },
@@ -174,76 +121,142 @@
               }
             }
           ]
+        },
+        {
+          "name": "qlc-brew-1",
+          "parts": [
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew1"
+              }
+            }
+          ]
+        },
+        {
+          "name": "qlc-brew-2",
+          "parts": [
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew2"
+              }
+            }
+          ]
+        },
+        {
+          "name": "voicemeeter-preset1",
+          "parts": [
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": false,
+                      "A1": true,
+                      "A2": true,
+                      "A3": false,
+                      "A4": false,
+                      "gain": -42.6
+                    },
+                    "in-1": {
+                      "mute": false,
+                      "A1": false,
+                      "A2": true,
+                      "A3": false,
+                      "A4": true,
+                      "gain": 10.0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "voicemeeter-preset2",
+          "parts": [
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": false,
+                      "A1": false,
+                      "A2": false,
+                      "A3": true,
+                      "A4": true,
+                      "gain": 4.2
+                    },
+                    "in-1": {
+                      "mute": true,
+                      "A1": true,
+                      "A2": false,
+                      "A3": true,
+                      "A4": false,
+                      "gain": -55.1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "full_scene_1",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "foobar"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "voicemeeter-preset1"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "qlc-brew-1"
+              }
+            }
+          ]
+        },
+        {
+          "name": "full_scene_2",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "deadbeef"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "voicemeeter-preset2"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "qlc-brew-2"
+              }
+            }
+          ]
         }
       ]
     },
     {
       "name": "StackTwo",
       "cues": [
-        {
-          "name": "scene1_active",
-          "parts": [
-            {
-              "target": "obs",
-              "command": {
-                "request": "SetSourceFilterVisibility",
-                "args": {
-                  "sourceName": "slave1",
-                  "filterName": "expanded",
-                  "filterEnabled": true
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "scene1_inactive",
-          "parts": [
-            {
-              "target": "obs",
-              "command": {
-                "request": "SetSourceFilterVisibility",
-                "args": {
-                  "sourceName": "slave1",
-                  "filterName": "normal",
-                  "filterEnabled": true
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "scene2_active",
-          "parts": [
-            {
-              "target": "obs",
-              "command": {
-                "request": "SetSourceFilterVisibility",
-                "args": {
-                  "sourceName": "slave2",
-                  "filterName": "expanded",
-                  "filterEnabled": true
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "scene2_inactive",
-          "parts": [
-            {
-              "target": "obs",
-              "command": {
-                "request": "SetSourceFilterVisibility",
-                "args": {
-                  "sourceName": "slave2",
-                  "filterName": "normal",
-                  "filterEnabled": true
-                }
-              }
-            }
-          ]
-        },
         {
           "name": "foobar",
           "parts": [
@@ -271,23 +284,45 @@
               }
             }
           ]
+        },
+        {
+          "name": "scene1_active",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "foobar"
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_inactive",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "deadbeef"
+              }
+            }
+          ]
         }
       ]
     }
   ],
   "command_targets": [
     {
-      "enabled": false,
+      "enabled": true,
       "name": "obs",
       "type": "obs-websocket",
       "config": {
-        "host": "localhost",
+        "host": "192.168.1.74",
         "port": 4444,
         "password": "secret"
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "qlcplus",
       "type": "osc-generic",
       "config": {
@@ -360,14 +395,6 @@
       }
     },
     {
-      "enabled": false,
-      "name": "GenericWebsocket2",
-      "type": "websocket",
-      "config": {
-        "port": 8082
-      }
-    },
-    {
       "enabled": true,
       "name": "GenericHTTP",
       "type": "http",
@@ -376,7 +403,7 @@
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "GenericMQTT",
       "type": "mqtt",
       "config": {

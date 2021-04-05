@@ -5,6 +5,7 @@ navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia
 
 let devicesAvailable = []
 let select = document.getElementById("selectDevice");
+let startButton = document.getElementById("startButton");
 let btnPick = document.getElementById("pick");
 let selectPanel = document.getElementById("removable-element");
 let sceneSelected = document.getElementById("scene");
@@ -76,7 +77,9 @@ function startStream() {
     if (navigator.getUserMedia) {
         navigator.getUserMedia({ audio: { deviceId: { exact: actualOpt } } }, function (stream) {
             vuMeter(stream)
-            selectPanel.remove()
+            // selectPanel.remove()
+            startButton.remove();
+            select.disabled = true;
         }, function (err) {
             console.warn(err)
         });

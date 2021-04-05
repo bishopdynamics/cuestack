@@ -4,9 +4,6 @@
     <list default="true" id="1b57d334-fd2e-4229-91ba-412ec9759c26" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CSCommandTargets.py" beforeDir="false" afterPath="$PROJECT_DIR$/CSCommandTargets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config-cuestack.json" beforeDir="false" afterPath="$PROJECT_DIR$/config-cuestack.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run-voicemeeteragent.bat" beforeDir="false" afterPath="$PROJECT_DIR$/run-voicemeeteragent.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.bat" beforeDir="false" afterPath="$PROJECT_DIR$/setup.bat" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +26,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="restartRequiresConfirmation" value="false" />
   </component>
-  <component name="RunManager" selected="Python.CueStack dev">
+  <component name="RunManager" selected="Python.CueStack prod">
     <configuration name="CueStack dev" type="PythonConfigurationType" factoryName="Python">
       <module name="CueStack" />
       <option name="INTERPRETER_OPTIONS" value="" />

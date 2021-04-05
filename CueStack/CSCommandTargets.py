@@ -223,11 +223,24 @@ class CSTargetGenericHTTP:
 
 class CSTargetGenericWebsocket:
     # generic Websocket target
+
+    # Opcode,Meaning,Reference
+    # 0,Continuation Frame,[RFC6455]
+    # 1,Text Frame,[RFC6455]
+    # 2,Binary Frame,[RFC6455]
+    # 3-7,Unassigned,
+    # 8,Connection Close Frame,[RFC6455]
+    # 9,Ping Frame,[RFC6455]
+    # 10,Pong Frame,[RFC6455]
+    # 11-15,Unassigned,
+
+    ok_opcodes = [0, 1, 2]
+    bad_opcodes = [8, 9, 10]
+
     def __init__(self, config):
         try:
             self.host = 'ws://%s:%s' % (config['host'], config['port'])
             self.ws = websocket.WebSocket()
-            self.ws.connect(self.host)
         except Exception as ex:
             logging.error('exception while setting up websocket target')
             raise ex
@@ -236,14 +249,14 @@ class CSTargetGenericWebsocket:
         actual_message = self.conv_msg_type(command)
         try:
             logging.info('sending Generic Websocket message (%s): %s' % (self.host, actual_message))
+            self.ws.connect(self.host)
             self.ws.send(actual_message)
-            reply = self.ws.recv_frame().data
+            reply = self.ws.recv_frame()
+            if reply.opcode not in self.ok_opcodes:
+                logging.error('reply from Generic Websocket: %s' % reply)
+                raise Exception('reply opcode was not in ok_opcodes, was %s' % reply.opcode)
             logging.debug('reply from Generic Websocket: %s' % reply)
-            # reply_decoded = self.decode_reply(reply)
-            # if reply_decoded['status'] != 'OK':
-            #     logging.warning('websocket send failed (%s), will reconnect and retry' % reply_decoded['status'])
-            #     raise Exception('failed to send message')
-            # logging.debug('websocket send got reply: OK')
+            self.ws.close()
         except Exception as ex:
             logging.error('exception while trying to send Generic Websocket message: (%s), will reconnect and retry' % ex)
             self.retry(actual_message)
@@ -253,25 +266,19 @@ class CSTargetGenericWebsocket:
             self.reconnect()
             logging.info('sending Generic Websocket message (%s): %s' % (self.host, message))
             self.ws.send(message)
-            reply = self.ws.recv_frame().data
+            reply = self.ws.recv_frame()
+            if reply.opcode not in self.ok_opcodes:
+                logging.error('reply from Generic Websocket: %s' % reply)
+                raise Exception('reply opcode was not in ok_opcodes, was %s' % reply.opcode)
             logging.debug('reply from Generic Websocket (second attempt): %s' % reply)
-            # reply_decoded = self.decode_reply(reply)
-            # if reply_decoded['status'] != 'OK':
-            #     raise Exception('websocket send failed twice')
+            self.ws.close()
         except Exception as ex:
-            logging.error('Generic Websocket send failed (%s) on retry, giving up' % ex)
+            logging.error('Generic Websocket send failed (%s) on second attempt, giving up' % ex)
 
     def reconnect(self):
         logging.debug('reconnecting websocket: %s' % self.host)
         self.ws.close()
         self.ws.connect(self.host)
-
-    def decode_reply(self, reply):
-        try:
-            result_decoded = json.loads(reply.decode('utf-8'))
-        except Exception as ex:
-            result_decoded = {'status': 'failed to decode reply: %s' % ex}
-        return result_decoded
 
     def conv_msg_type(self, command):
         actual_message = command['message']

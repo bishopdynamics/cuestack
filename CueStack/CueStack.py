@@ -36,17 +36,19 @@ class CueStackService:
     trigger_sources = {}  # objects managing a connection to a trigger source live here
     command_targets = {}  # objects managing a connection to a command target live here
 
-    def __init__(self):
+    def __init__(self, args):
         logging.info('CueStack is starting...')
+        self.args = args
         path_file = pathlib.Path(__file__).parent.absolute()
         path_cwd = pathlib.Path.cwd()
         path_base = path_cwd
-        config_file = path_base.joinpath('config-cuestack.json')
+        config_file = path_base.joinpath(self.args.config)
+        logging.info('using config file: %s' % config_file)
         try:
             with open(config_file, 'r') as cf:
                 self.config = json.load(cf)
         except Exception as e:
-            logging.error('exception while parsing config-cuestack.json: %s' % e)
+            logging.error('exception while parsing config file (%s): %s' % (config_file, e))
             self.stop(1)
         try:
             logging.info('setting up structures')
@@ -168,10 +170,13 @@ class CueStackService:
 
 if __name__ == "__main__":
     # this is the main entry point for CueStack
-    ARG_PARSER = argparse.ArgumentParser(description='CueStack Server')
+    ARG_PARSER = argparse.ArgumentParser(description='CueStack Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ARG_PARSER.add_argument('-m', dest='mode', action='store',
                             type=str, default='prod', choices=['prod', 'dev'],
                             help='which mode to run in')
+    ARG_PARSER.add_argument('-c', dest='config', action='store',
+                            type=str, default='config-cuestack.json',
+                            help='config file to use, relative to current directory')
     ARGS = ARG_PARSER.parse_args()
     if ARGS.mode == 'dev':
         LOG_LEVEL = logging.DEBUG
@@ -180,5 +185,4 @@ if __name__ == "__main__":
     logger = get_logger(name=__name__,
                         level=LOG_LEVEL)
     assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
-    CS = CueStackService()
-
+    CS = CueStackService(ARGS)

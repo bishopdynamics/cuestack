@@ -31,7 +31,7 @@ async def ws_server(websocket, path):
 if __name__ == "__main__":
     # this is the main entry point
     print('Websocket Test Server')
-    ARG_PARSER = argparse.ArgumentParser(description='Test Websocket Server')
+    ARG_PARSER = argparse.ArgumentParser(description='Test Websocket Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ARG_PARSER.add_argument('-p', dest='port', action='store',
                             type=int, default=8113,
                             help='port on which to run websocket server')

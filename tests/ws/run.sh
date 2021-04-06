@@ -7,6 +7,6 @@ function bail {
 
 source venv/bin/activate || bail
 
-python server.py "$1" "$2" || bail
+python server.py $@ || bail
 
 echo "exited cleanly"

@@ -7,6 +7,6 @@ function bail {
 
 source venv/bin/activate || bail
 
-python ViscaAgent.py || bail
+python ViscaAgent.py $@ || bail
 
 echo "exited cleanly"

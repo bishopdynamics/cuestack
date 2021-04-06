@@ -7,6 +7,6 @@ function bail {
 
 source venv/bin/activate || bail
 
-python CueStack.py || bail
+python CueStack.py $@ || bail
 
 echo "exited cleanly"

@@ -1,10 +1,10 @@
-if [ -z "$1" ]; then
-  echo "need to provide a commit message"
-  exit 1
-fi
+#!/usr/bin/env bash
 
-git add .
-git commit -m "$1"
+# create a new commit if a message was provided
+if [ -n "$1" ]; then
+  git add .
+  git commit -m "$1"
+fi
 
 git push origin main
 git push local main

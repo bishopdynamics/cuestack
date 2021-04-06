@@ -126,6 +126,7 @@ class VoicemeeterAgent:
         except Exception:
             pass
         logging.info('Voicemeeter Agent shutdown complete')
+        input('press enter to completely exit')
 
 
 def handle_windows_signal(a, b=None):

@@ -37,7 +37,10 @@ class CueStackService:
 
     def __init__(self):
         logging.info('CueStack is starting...')
-        path_base = pathlib.Path(__file__).parent.absolute()
+        path_file = pathlib.Path(__file__).parent.absolute()
+        path_cwd = pathlib.Path.cwd()
+        path_base = path_cwd
+        logging.info('file: %s, cwd: %s' % (path_file, path_cwd))
         config_file = path_base.joinpath('config-cuestack.json')
         try:
             with open(config_file, 'r') as cf:

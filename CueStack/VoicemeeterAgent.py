@@ -40,7 +40,10 @@ class VoicemeeterAgent:
 
     def __init__(self):
         logging.info('Voicemeeter Agent is starting...')
-        path_base = pathlib.Path(__file__).parent.absolute()
+        path_file = pathlib.Path(__file__).parent.absolute()
+        path_cwd = pathlib.Path.cwd()
+        path_base = path_cwd
+        logging.info('file: %s, cwd: %s' % (path_file, path_cwd))
         config_file = path_base.joinpath('config-voicemeeteragent.json')
         try:
             with open(config_file, 'r') as cf:

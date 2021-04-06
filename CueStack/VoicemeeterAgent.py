@@ -49,7 +49,7 @@ class VoicemeeterAgent:
                 self.config = json.load(cf)
         except Exception as e:
             logging.error('exception while parsing config-voicemeeteragent.json: %s' % e)
-            sys.exit(1)
+            self.stop(1)
         try:
             logging.info('setting up structures')
             self.loop = asyncio.new_event_loop()
@@ -58,8 +58,7 @@ class VoicemeeterAgent:
 
         except Exception as ex:
             logging.error('exception while setting up structures: %s' % ex)
-            self.stop()
-            sys.exit(1)
+            self.stop(1)
 
         signal.signal(signal.SIGTERM, self.handle_signal)
         signal.signal(signal.SIGINT, self.handle_signal)
@@ -70,7 +69,7 @@ class VoicemeeterAgent:
             pass
         except Exception as ex:
             logging.error('Unexpected Exception while setting up Voicemeeter Agent: %s', ex)
-            self.stop()
+            self.stop(1)
 
     def setup_command_sources(self):
         # setup command sources based on config, populating command_sources
@@ -104,12 +103,11 @@ class VoicemeeterAgent:
             logging.info('Caught signal to initiate shutdown')
             logging.debug('Caught signal: %s', this_signal)
             self.stop()
-            sys.exit(0)
         except Exception as ex:
             logging.error('Unexpected Exception while handling signal: %s', ex)
             sys.exit(1)
 
-    def stop(self):
+    def stop(self, code=0):
         # shut down anything that needs to be
         logging.info('shutting down command sources')
         for this_source in self.command_sources:
@@ -126,7 +124,9 @@ class VoicemeeterAgent:
         except Exception:
             pass
         logging.info('Voicemeeter Agent shutdown complete')
-        input('press enter to completely exit')
+        print(' ')
+        input('paused to let you read messages above, press enter to completely exit')
+        sys.exit(code)
 
 
 def handle_windows_signal(a, b=None):

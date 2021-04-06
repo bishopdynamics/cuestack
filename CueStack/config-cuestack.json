@@ -312,7 +312,7 @@
   ],
   "command_targets": [
     {
-      "enabled": true,
+      "enabled": false,
       "name": "obs",
       "type": "obs-websocket",
       "config": {
@@ -322,7 +322,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "qlcplus",
       "type": "osc-generic",
       "config": {

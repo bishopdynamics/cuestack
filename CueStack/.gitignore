@@ -1,0 +1,11 @@
+__pycache__/*
+dist/*
+VoicemeeterAgent.build/*
+VoicemeeterAgent.dist/*
+VoicemeeterAgent.onefile-build/*
+VoicemeeterAgent.exe
+CueStack.build/*
+CueStack.dist/*
+CueStack.onefile-build/*
+CueStack.exe
+

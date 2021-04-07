@@ -7,7 +7,7 @@ rmdir /S /Q VoicemeeterAgent.dist
 rmdir /S /Q VoicemeeterAgent.onefile-build
 move VoicemeeterAgent.exe .\dist\
 
-py -m nuitka --mingw64 --onefile --plugin-enable=pylint-warnings --windows-onefile-tempdir CueStack.py
+py -m nuitka --mingw64 --onefile --plugin-enable=pylint-warnings=multiprocessing --windows-onefile-tempdir CueStack.py
 rmdir /S /Q CueStack.build
 rmdir /S /Q CueStack.dist
 rmdir /S /Q CueStack.onefile-build

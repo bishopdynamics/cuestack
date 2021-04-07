@@ -7,6 +7,6 @@ function bail {
 
 source venv/bin/activate || bail
 
-python server.py $@ || bail
+python WSTest.py $@ || bail
 
 echo "exited cleanly"

@@ -1,0 +1,189 @@
+{
+  "default_stack": "StackOne",
+  "stacks": [
+    {
+      "name": "StackOne",
+      "cues": [
+        {
+          "name": "hit_them_all",
+          "parts": [
+            {
+              "target": "websocket1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket2",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket3",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket4",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket5",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket6",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket7",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            },
+            {
+              "target": "websocket8",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "command_targets": [
+    {
+      "enabled": true,
+      "name": "websocket1",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8001
+      }
+    },
+    {
+      "enabled": true,
+      "name": "websocket2",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8002
+      }
+    },
+    {
+      "enabled": true,
+      "name": "websocket3",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8003
+      }
+    },
+    {
+      "enabled": true,
+      "name": "websocket4",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8004
+      }
+    },
+    {
+      "enabled": false,
+      "name": "websocket5",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8005
+      }
+    },
+    {
+      "enabled": false,
+      "name": "websocket6",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8006
+      }
+    },
+    {
+      "enabled": false,
+      "name": "websocket7",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8007
+      }
+    },
+    {
+      "enabled": false,
+      "name": "websocket8",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8008
+      }
+    }
+  ],
+  "trigger_sources": [
+    {
+      "enabled": true,
+      "name": "GenericWebsocket1",
+      "type": "websocket",
+      "config": {
+        "port": 8081
+      }
+    },
+    {
+      "enabled": true,
+      "name": "GenericHTTP",
+      "type": "http",
+      "config": {
+        "port": 8080
+      }
+    },
+    {
+      "enabled": false,
+      "name": "GenericMQTT",
+      "type": "mqtt",
+      "config": {
+        "host": "james-broker",
+        "port": 1883,
+        "topic": "CueStackTrigger"
+      }
+    }
+  ]
+}

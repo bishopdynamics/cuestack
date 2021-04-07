@@ -70,7 +70,6 @@ class CSTargetOBS:
             self.send_command(command, method_to_call)
         except Exception as ex:
             logging.error('failed a second time to send obs-websocket command. will not retry again.')
-            raise ex
 
     def reconnect(self):
         logging.debug('reconnecting obs-websocket')
@@ -104,7 +103,6 @@ class CSTargetGenericOSC:
             self.osc.send_message(command['address'], realvalue)
         except Exception as ex:
             logging.error('exception while trying to send Generic OSC message: %s' % ex)
-            raise ex
 
     def stop(self):
         logging.info('shutting down an Generic OSC connection')
@@ -177,7 +175,6 @@ class CSTargetGenericUDP:
             self.sock.sendto(bytes(actual_message, "utf-8"), self.host)
         except Exception as ex:
             logging.error('exception while trying to send Generic UDP message: %s' % ex)
-            raise ex
 
     def conv_msg_type(self, command):
         actual_message = command['message']

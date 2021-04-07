@@ -18,6 +18,7 @@
 
 import json
 import logging
+from datetime import datetime
 
 
 class CSMessageProcessor:
@@ -68,12 +69,15 @@ class CSMessageProcessor:
                         logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (cuename, num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
                         if cue_part['target'] == 'internal':
                             # an internal cue part can be used to call another trigger
-                            logging.info('Sending an internal trigger: %s' % cue_part['command'])
+                            timestamp = str(datetime.now())
+                            logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
                             tempstring = json.dumps(cue_part['command'])
                             self.handle(tempstring)
                             continue
                         else:
                             if cue_part['target'] in self.command_targets:
+                                timestamp = str(datetime.now())
+                                logging.debug('%s executing a part' % timestamp)
                                 self.command_targets[cue_part['target']].send(cue_part['command'])
                             else:
                                 logging.error('no enabled command target exists to handle cue target: %s' % cue_part['target'])

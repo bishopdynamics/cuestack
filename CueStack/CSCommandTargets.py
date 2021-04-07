@@ -19,7 +19,7 @@ import json
 import logging
 import socket
 import websocket
-
+import multiprocessing
 import paho.mqtt.client as mqtt
 
 from obswebsocket import obsws as obs_client
@@ -27,12 +27,17 @@ from obswebsocket import requests as obs_requests
 from pythonosc import udp_client
 from urllib.request import urlopen
 from urllib.parse import urlencode
-from CSJanus import CSSafeQueue
+from CSLogger import get_mplogger
+
+# this sets log level for things in a separate process
+TARGET_LOG_LEVEL = logging.DEBUG
 
 # Target classes must implement three methods:
 #   __init__
-#       must take two arguments,  "config" which is a dictionary holding target config exactly as defined in config.json
-#       and "loop", the current asyncio loop passed from on high
+#       must take exactly three arguments:
+#           config - dictionary holding target config exactly as defined in config.json
+#           name - the name to assign to the process for logging
+#           queue - the queue (instance of multiprocessing.Queue) which will be used to pass messages from main thread
 #   send
 #       must take a single argument "command" which is a dictionary holding the command exactly as defined in config.json
 #   stop
@@ -41,9 +46,8 @@ from CSJanus import CSSafeQueue
 
 class CSTargetOBS:
     # Control OBS Studio using the obs-websocket plugin
-    def __init__(self, config, loop):
+    def __init__(self, config):
         self.config = config
-        self.loop = loop
         self.obs = obs_client(self.config['host'], self.config['port'], self.config['password'])
         self.obs.connect()
 
@@ -87,9 +91,8 @@ class CSTargetOBS:
 
 class CSTargetGenericOSC:
     # generic OSC target
-    def __init__(self, config, loop):
+    def __init__(self, config):
         self.config = config
-        self.loop = loop
         try:
             self.osc = udp_client.SimpleUDPClient(self.config['host'], self.config['port'])
             self.host = (self.config['host'], self.config['port'])
@@ -115,9 +118,8 @@ class CSTargetGenericOSC:
 
 class CSTargetGenericTCP:
     # generic TCP target
-    def __init__(self, config, loop):
+    def __init__(self, config):
         self.config = config
-        self.loop = loop
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.host = (self.config['host'], self.config['port'])
@@ -166,9 +168,8 @@ class CSTargetGenericTCP:
 
 class CSTargetGenericUDP:
     # generic UDP target
-    def __init__(self, config, loop):
+    def __init__(self, config):
         self.config = config
-        self.loop = loop
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.host = (self.config['host'], self.config['port'])
@@ -199,9 +200,8 @@ class CSTargetGenericUDP:
 
 class CSTargetGenericHTTP:
     # generic HTTP target
-    def __init__(self, config, loop):
+    def __init__(self, config):
         self.config = config
-        self.loop = loop
         self.host = 'http://%s:%s' % (self.config['host'], self.config['port'])
 
     def send(self, command):
@@ -244,48 +244,65 @@ class CSTargetGenericWebsocket:
     ok_opcodes = [0, 1, 2]
     bad_opcodes = [8, 9, 10]
 
-    def __init__(self, config, loop):
+    def __init__(self, config, name, queue):
         self.config = config
-        self.loop = loop
+        self.name = name
+        self.queue = queue
         try:
+            self.logger = get_mplogger(name=self.name, level=TARGET_LOG_LEVEL)
+            self.logger.info('setting up websocket')
             self.host = 'ws://%s:%s' % (self.config['host'], self.config['port'])
             self.ws = websocket.WebSocket()
         except Exception as ex:
-            logging.error('exception while setting up websocket target')
+            self.logger.error('exception while setting up websocket target')
             raise ex
+        try:
+            self.process_queue()
+        except:
+            pass
 
     def send(self, command):
+        self.logger.debug('queueing websocket message: %s' % command)
+        self.queue.put(command)
+
+    def process_queue(self):
+        while True:
+            if not self.queue.empty():
+                command = self.queue.get()
+                self._send(command)
+
+    def _send(self, command):
         actual_message = self.conv_msg_type(command)
         try:
-            logging.info('sending Generic Websocket message (%s): %s' % (self.host, actual_message))
+            self.logger.info('sending Generic Websocket message (%s): %s' % (self.host, actual_message))
             self.ws.connect(self.host)
             self.ws.send(actual_message)
             reply = self.ws.recv_frame()
             if reply.opcode not in self.ok_opcodes:
-                logging.error('reply from Generic Websocket: %s' % reply)
+                self.logger.error('reply from Generic Websocket: %s' % reply)
                 raise Exception('reply opcode was not in ok_opcodes, was %s' % reply.opcode)
-            logging.debug('reply from Generic Websocket: %s' % reply)
+            self.logger.debug('reply from Generic Websocket: %s' % reply)
             self.ws.close()
         except Exception as ex:
-            logging.error('exception while trying to send Generic Websocket message: (%s), will reconnect and retry' % ex)
+            self.logger.error('exception while trying to send Generic Websocket message: (%s), will reconnect and retry' % ex)
             self.retry(actual_message)
 
     def retry(self, message):
         try:
             self.reconnect()
-            logging.info('sending Generic Websocket message (%s): %s' % (self.host, message))
+            self.logger.info('sending Generic Websocket message (%s): %s' % (self.host, message))
             self.ws.send(message)
             reply = self.ws.recv_frame()
             if reply.opcode not in self.ok_opcodes:
-                logging.error('reply from Generic Websocket: %s' % reply)
+                self.logger.error('reply from Generic Websocket: %s' % reply)
                 raise Exception('reply opcode was not in ok_opcodes, was %s' % reply.opcode)
-            logging.debug('reply from Generic Websocket (second attempt): %s' % reply)
+            self.logger.debug('reply from Generic Websocket (second attempt): %s' % reply)
             self.ws.close()
         except Exception as ex:
-            logging.error('Generic Websocket send failed (%s) on second attempt, giving up' % ex)
+            self.logger.error('Generic Websocket send failed (%s) on second attempt, giving up' % ex)
 
     def reconnect(self):
-        logging.debug('reconnecting websocket: %s' % self.host)
+        self.logger.debug('reconnecting websocket: %s' % self.host)
         self.ws.close()
         self.ws.connect(self.host)
 
@@ -293,20 +310,19 @@ class CSTargetGenericWebsocket:
         actual_message = command['message']
         if 'message_type' in command:
             if command['message_type'] == 'dict':
-                logging.debug('converting outbound message type "dict" to a json-encoded string')
+                self.logger.debug('converting outbound message type "dict" to a json-encoded string')
                 actual_message = json.dumps(command['message'])
         return actual_message
 
     def stop(self):
-        logging.info('shutting down a Generic Websocket connection')
+        self.logger.info('shutting down a Generic Websocket connection process')
         self.ws.close()
 
 
 class CSTargetGenericMQTT:
     # generic MQTT target
-    def __init__(self, config, loop):
+    def __init__(self, config):
         self.config = config
-        self.loop = loop
         try:
             self.host = (self.config['host'], self.config['port'])
             self.client = mqtt.Client('CueStack')

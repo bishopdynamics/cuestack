@@ -25,6 +25,8 @@ import argparse
 import pathlib
 import platform
 
+from multiprocessing import Process, Queue
+
 from CSLogger import get_logger
 from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
 from CSCommandTargets import CSTargetOBS, CSTargetGenericOSC, CSTargetGenericTCP, CSTargetGenericUDP, CSTargetGenericHTTP, CSTargetGenericWebsocket, CSTargetGenericMQTT
@@ -34,7 +36,17 @@ from CSMessageProcessor import CSMessageProcessor
 class CueStackService:
     config = None  # parsed config lives here
     trigger_sources = {}  # objects managing a connection to a trigger source live here
-    command_targets = {}  # objects managing a connection to a command target live here
+    command_targets = {}  # holds the processes (multithreading) that handle sending command target messages
+    command_queues = {}  # holds the queues for pushing messages to the process which sends them
+    target_map = {
+        'obs-websocket': CSTargetOBS,
+        'osc-generic': CSTargetGenericOSC,
+        'tcp-generic': CSTargetGenericTCP,
+        'udp-generic': CSTargetGenericUDP,
+        'http-generic': CSTargetGenericHTTP,
+        'websocket-generic': CSTargetGenericWebsocket,
+        'mqtt-generic': CSTargetGenericMQTT
+    }
 
     def __init__(self, args):
         logging.info('CueStack is starting...')
@@ -53,7 +65,7 @@ class CueStackService:
         try:
             logging.info('setting up structures')
             self.loop = asyncio.new_event_loop()
-            self.msg_processor = CSMessageProcessor(self.config, self.trigger_sources, self.command_targets)
+            self.msg_processor = CSMessageProcessor(self.config, self.trigger_sources, self.command_targets, self.command_queues)
             self.setup_command_targets()
             self.setup_trigger_sources()
 
@@ -83,20 +95,26 @@ class CueStackService:
                     logging.info('setting up command target: %s' % this_target['name'])
                     this_type = this_target['type']
                     this_config = this_target['config']
-                    if this_type == 'obs-websocket':
-                        self.command_targets[this_target['name']] = CSTargetOBS(this_config, self.loop)
-                    elif this_type == 'osc-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericOSC(this_config, self.loop)
-                    elif this_type == 'tcp-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericTCP(this_config, self.loop)
-                    elif this_type == 'udp-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericUDP(this_config, self.loop)
-                    elif this_type == 'http-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericHTTP(this_config, self.loop)
-                    elif this_type == 'websocket-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericWebsocket(this_config, self.loop)
-                    elif this_type == 'mqtt-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericMQTT(this_config, self.loop)
+                    # if this_type == 'obs-websocket':
+                    #     self.command_targets[this_target['name']] = CSTargetOBS(this_config)
+                    # elif this_type == 'osc-generic':
+                    #     self.command_targets[this_target['name']] = CSTargetGenericOSC(this_config)
+                    # elif this_type == 'tcp-generic':
+                    #     self.command_targets[this_target['name']] = CSTargetGenericTCP(this_config)
+                    # elif this_type == 'udp-generic':
+                    #     self.command_targets[this_target['name']] = CSTargetGenericUDP(this_config)
+                    # elif this_type == 'http-generic':
+                    #     self.command_targets[this_target['name']] = CSTargetGenericHTTP(this_config)
+                    # elif this_type == 'websocket-generic':
+                    #     self.command_queues[this_target['name']] = Queue()
+                    #     self.command_targets[this_target['name']] = Process(target=self.target_map[this_type], args=(this_config, this_target['name'], self.command_queues[this_target['name']]))
+                    #     self.command_targets[this_target['name']].start()
+                    # elif this_type == 'mqtt-generic':
+                    #     self.command_targets[this_target['name']] = CSTargetGenericMQTT(this_config)
+                    if this_type in self.target_map:
+                        self.command_queues[this_target['name']] = Queue()
+                        self.command_targets[this_target['name']] = Process(target=self.target_map[this_type], args=(this_config, this_target['name'], self.command_queues[this_target['name']]))
+                        self.command_targets[this_target['name']].start()
                     else:
                         raise Exception('command target %s unknown type: %s' % (this_target['name'], this_type))
             except Exception:
@@ -151,7 +169,10 @@ class CueStackService:
         logging.info('shutting down command targets')
         for this_target in self.command_targets:
             try:
-                self.command_targets[this_target].stop()
+                # self.command_targets[this_target].stop()
+                logging.debug('shutting down command target process: %s' % this_target)
+                self.command_targets[this_target].terminate()
+                self.command_targets[this_target].join()
             except Exception:
                 pass
         try:

@@ -23,10 +23,11 @@ from datetime import datetime
 
 class CSMessageProcessor:
     # CueStack, all trigger sources pass their messages off to this class's handle method
-    def __init__(self, config, trigger_sources, command_targets):
+    def __init__(self, config, trigger_sources, command_targets, command_queues):
         logging.debug('Initializing a CSMessageProcessor')
         self.command_targets = command_targets
         self.trigger_sources = trigger_sources
+        self.command_queues = command_queues
         self.config = config
         self.current_cue_stack = self.find_stack(config['default_stack'])
 
@@ -78,7 +79,8 @@ class CSMessageProcessor:
                             if cue_part['target'] in self.command_targets:
                                 timestamp = str(datetime.now())
                                 logging.debug('%s executing a part' % timestamp)
-                                self.command_targets[cue_part['target']].send(cue_part['command'])
+                                # self.command_targets[cue_part['target']].send(cue_part['command'])
+                                self.command_queues[cue_part['target']].put(cue_part['command'])
                             else:
                                 logging.error('no enabled command target exists to handle cue target: %s' % cue_part['target'])
                                 continue

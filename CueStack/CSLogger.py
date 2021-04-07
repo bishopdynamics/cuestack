@@ -7,6 +7,7 @@ import threading
 import platform
 import logging
 import sys
+import multiprocessing
 
 import io
 
@@ -43,12 +44,14 @@ class Colors:
 
 class CustomFormatter(logging.Formatter):
     """Logging Formatter to add colors and count warning / errors"""
-    def __init__(self, auto_colorized=True, custom_format: str = None):
+    def __init__(self, auto_colorized=True, custom_format: str = None, name=''):
         super(CustomFormatter, self).__init__()
         if platform.system() != 'Windows':
             self.auto_colorized = auto_colorized
         else:
+            # windows cant handle colorized console, because windows sucks
             self.auto_colorized = False
+        self.name = name
         self.custom_format = custom_format
         self.FORMATS = self.define_format()
         # if auto_colorized and custom_format:
@@ -68,7 +71,7 @@ class CustomFormatter(logging.Formatter):
         if self.auto_colorized:
 
             format_prefix = f"{Colors.purple}%(asctime)s{Colors.reset} " \
-                            f"{Colors.blue}%(name)s{Colors.reset} " \
+                            f"{Colors.blue}%(name)s ({self.name}){Colors.reset} " \
                             f"{Colors.light_blue}(%(filename)s:%(lineno)d){Colors.reset} "
 
             format_suffix = "%(levelname)s - %(message)s"
@@ -131,20 +134,21 @@ class SpecialHandler(logging.StreamHandler):
         print(l_text)
 
 
-def get_logger(name, auto_colorized=True, custom_format: str = None, level=logging.INFO, msg_storage=None):
-
+def get_logger(name, auto_colorized=True, custom_format: str = None, level=logging.INFO):
     logging.basicConfig(level=level, stream=__NullHandler())
     root = logging.root
-
-    if msg_storage is not None:
-        ch = SpecialHandler(msg_storage)
-        ch.setLevel(level)
-        ch.setFormatter(CustomFormatter(auto_colorized, custom_format))
-        root.addHandler(ch)
-    else:
-        ch = logging.StreamHandler()
-        ch.setLevel(level)
-        ch.setFormatter(CustomFormatter(auto_colorized, custom_format))
-        root.addHandler(ch)
-
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    ch.setFormatter(CustomFormatter(auto_colorized, custom_format, name=name))
+    root.addHandler(ch)
     return logging.getLogger(name)
+
+
+def get_mplogger(name='', auto_colorized=True, level=logging.INFO):
+    logger = multiprocessing.get_logger()
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    ch.setFormatter(CustomFormatter(auto_colorized, name=name))
+    logger.addHandler(ch)
+    logger.setLevel(level)
+    return logger

@@ -84,19 +84,19 @@ class CueStackService:
                     this_type = this_target['type']
                     this_config = this_target['config']
                     if this_type == 'obs-websocket':
-                        self.command_targets[this_target['name']] = CSTargetOBS(this_config)
+                        self.command_targets[this_target['name']] = CSTargetOBS(this_config, self.loop)
                     elif this_type == 'osc-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericOSC(this_config)
+                        self.command_targets[this_target['name']] = CSTargetGenericOSC(this_config, self.loop)
                     elif this_type == 'tcp-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericTCP(this_config)
+                        self.command_targets[this_target['name']] = CSTargetGenericTCP(this_config, self.loop)
                     elif this_type == 'udp-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericUDP(this_config)
+                        self.command_targets[this_target['name']] = CSTargetGenericUDP(this_config, self.loop)
                     elif this_type == 'http-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericHTTP(this_config)
+                        self.command_targets[this_target['name']] = CSTargetGenericHTTP(this_config, self.loop)
                     elif this_type == 'websocket-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericWebsocket(this_config)
+                        self.command_targets[this_target['name']] = CSTargetGenericWebsocket(this_config, self.loop)
                     elif this_type == 'mqtt-generic':
-                        self.command_targets[this_target['name']] = CSTargetGenericMQTT(this_config)
+                        self.command_targets[this_target['name']] = CSTargetGenericMQTT(this_config, self.loop)
                     else:
                         raise Exception('command target %s unknown type: %s' % (this_target['name'], this_type))
             except Exception:

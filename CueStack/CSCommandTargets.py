@@ -27,10 +27,12 @@ from obswebsocket import requests as obs_requests
 from pythonosc import udp_client
 from urllib.request import urlopen
 from urllib.parse import urlencode
+from CSJanus import CSSafeQueue
 
 # Target classes must implement three methods:
 #   __init__
-#       must take a single argument "config" which is a dictionary holding target config exactly as defined in config.json
+#       must take two arguments,  "config" which is a dictionary holding target config exactly as defined in config.json
+#       and "loop", the current asyncio loop passed from on high
 #   send
 #       must take a single argument "command" which is a dictionary holding the command exactly as defined in config.json
 #   stop
@@ -39,8 +41,9 @@ from urllib.parse import urlencode
 
 class CSTargetOBS:
     # Control OBS Studio using the obs-websocket plugin
-    def __init__(self, config):
+    def __init__(self, config, loop):
         self.config = config
+        self.loop = loop
         self.obs = obs_client(self.config['host'], self.config['port'], self.config['password'])
         self.obs.connect()
 
@@ -84,10 +87,12 @@ class CSTargetOBS:
 
 class CSTargetGenericOSC:
     # generic OSC target
-    def __init__(self, config):
+    def __init__(self, config, loop):
+        self.config = config
+        self.loop = loop
         try:
-            self.osc = udp_client.SimpleUDPClient(config['host'], config['port'])
-            self.host = (config['host'], config['port'])
+            self.osc = udp_client.SimpleUDPClient(self.config['host'], self.config['port'])
+            self.host = (self.config['host'], self.config['port'])
         except Exception as ex:
             logging.error('exception while trying to setup Generic OSC connection: %s' % ex)
             raise ex
@@ -110,8 +115,9 @@ class CSTargetGenericOSC:
 
 class CSTargetGenericTCP:
     # generic TCP target
-    def __init__(self, config):
+    def __init__(self, config, loop):
         self.config = config
+        self.loop = loop
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.host = (self.config['host'], self.config['port'])
@@ -160,10 +166,12 @@ class CSTargetGenericTCP:
 
 class CSTargetGenericUDP:
     # generic UDP target
-    def __init__(self, config):
+    def __init__(self, config, loop):
+        self.config = config
+        self.loop = loop
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.host = (config['host'], config['port'])
+            self.host = (self.config['host'], self.config['port'])
         except Exception as ex:
             logging.error('exception while trying to setup Generic UDP connection: %s' % ex)
             raise ex
@@ -191,8 +199,10 @@ class CSTargetGenericUDP:
 
 class CSTargetGenericHTTP:
     # generic HTTP target
-    def __init__(self, config):
-        self.host = 'http://%s:%s' % (config['host'], config['port'])
+    def __init__(self, config, loop):
+        self.config = config
+        self.loop = loop
+        self.host = 'http://%s:%s' % (self.config['host'], self.config['port'])
 
     def send(self, command):
         # command['mesage'] = '/endpoint?foo=bar&beef=dead'
@@ -234,9 +244,11 @@ class CSTargetGenericWebsocket:
     ok_opcodes = [0, 1, 2]
     bad_opcodes = [8, 9, 10]
 
-    def __init__(self, config):
+    def __init__(self, config, loop):
+        self.config = config
+        self.loop = loop
         try:
-            self.host = 'ws://%s:%s' % (config['host'], config['port'])
+            self.host = 'ws://%s:%s' % (self.config['host'], self.config['port'])
             self.ws = websocket.WebSocket()
         except Exception as ex:
             logging.error('exception while setting up websocket target')
@@ -292,11 +304,13 @@ class CSTargetGenericWebsocket:
 
 class CSTargetGenericMQTT:
     # generic MQTT target
-    def __init__(self, config):
+    def __init__(self, config, loop):
+        self.config = config
+        self.loop = loop
         try:
-            self.host = (config['host'], config['port'])
+            self.host = (self.config['host'], self.config['port'])
             self.client = mqtt.Client('CueStack')
-            self.client.connect(config['host'], config['port'])
+            self.client.connect(self.config['host'], self.config['port'])
         except Exception as ex:
             logging.error('exception while setting up MQTT target')
             raise ex

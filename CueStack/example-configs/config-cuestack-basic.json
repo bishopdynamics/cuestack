@@ -1,0 +1,236 @@
+{
+  "default_stack": "StackOne",
+  "stacks": [
+    {
+      "name": "StackOne",
+      "cues": [
+        {
+          "name": "scene1_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "scene1",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_inactive",
+          "enabled": true,
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "scene1",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "gotoscene_foobar",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "foobar"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "qlc-brew-1",
+          "parts": [
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew1"
+              }
+            }
+          ]
+        },
+        {
+          "name": "voicemeeter-preset1",
+          "parts": [
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": false,
+                      "A1": true,
+                      "A2": true,
+                      "A3": false,
+                      "A4": false,
+                      "gain": -42.6
+                    },
+                    "in-1": {
+                      "mute": false,
+                      "A1": false,
+                      "A2": true,
+                      "A3": false,
+                      "A4": true,
+                      "gain": 10.0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_subcues",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "gotoscene_foobar"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "voicemeeter-preset1"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "qlc-brew-1"
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_http",
+          "parts": [
+            {
+              "target": "http-example",
+              "comment": "http://localhost:9090/endpoint?foo=1&bar=clementine",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "path": "endpoint",
+                  "params": {
+                    "foo": 1,
+                    "bar": "clementine"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "StackOne",
+      "cues": [
+        {
+          "name": "scene1_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "scene1",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_inactive",
+          "enabled": true,
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "scene1",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "command_targets": [
+    {
+      "enabled": true,
+      "name": "http-example",
+      "type": "http-generic",
+      "config": {
+        "host": "localhost",
+        "port": 9090
+      }
+    },
+    {
+      "enabled": true,
+      "name": "websocket-example",
+      "type": "websocket-generic",
+      "config": {
+        "host": "localhost",
+        "port": 8113
+      }
+    },
+    {
+      "enabled": true,
+      "name": "mqtt-example",
+      "type": "mqtt-generic",
+      "config": {
+        "host": "james-broker",
+        "port": 1883
+      }
+    }
+  ],
+  "trigger_sources": [
+    {
+      "enabled": true,
+      "name": "GenericWebsocket1",
+      "type": "websocket",
+      "config": {
+        "port": 8081
+      }
+    },
+    {
+      "enabled": true,
+      "name": "GenericHTTP",
+      "type": "http",
+      "config": {
+        "port": 8080
+      }
+    },
+    {
+      "enabled": true,
+      "name": "GenericMQTT",
+      "type": "mqtt",
+      "config": {
+        "host": "james-broker",
+        "port": 1883,
+        "topic": "CueStackTrigger"
+      }
+    }
+  ]
+}

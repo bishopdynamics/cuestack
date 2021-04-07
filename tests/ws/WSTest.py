@@ -9,9 +9,11 @@ import sys
 import asyncio
 import websockets
 import argparse
+import platform
 from datetime import datetime
 
-WS_PORT = 8113
+if platform.system() == 'Windows':
+    import win32api
 
 
 async def ws_server(websocket, path):
@@ -28,9 +30,16 @@ async def ws_server(websocket, path):
             continue
 
 
+def handle_windows_signal(a, b=None):
+    print('caught windows idea of a signal, you probably need to press ctrl+c again')
+    sys.exit()
+
+
 if __name__ == "__main__":
     # this is the main entry point
     print('Websocket Test Server')
+    if platform.system() == 'Windows':
+        win32api.SetConsoleCtrlHandler(handle_windows_signal, True)
     ARG_PARSER = argparse.ArgumentParser(description='Test Websocket Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ARG_PARSER.add_argument('-p', dest='port', action='store',
                             type=int, default=8113,

@@ -32,7 +32,7 @@ from CSLogger import get_mplogger
 
 class CSCommandTarget:
     # base implementation of a command target
-    data = {}
+    data = {}  # children of this class should attach additional data to this key, instead of attaching directly to self
 
     def __init__(self, config_obj):
         self.config_obj = config_obj
@@ -70,6 +70,7 @@ class CSCommandTarget:
 
     def conv_msg_type(self, command):
         # convert messages with message_type key in them
+        # this assumes that the final result can be a JSON encoded string, override this method to do something different
         actual_message = command['message']
         if 'message_type' in command:
             if command['message_type'] == 'dict':
@@ -79,14 +80,19 @@ class CSCommandTarget:
 
     @abstractmethod
     def setup(self):
+        # this is where connection setup happens, attach any extra objects to self.data
         pass
 
     @abstractmethod
     def send(self, command):
+        # commands will be pulled from queue and passed to this function
         pass
 
     @abstractmethod
     def shutdown(self):
+        # do anything that needs to happen at shutdown
+        # should_run will be set to false before calling this, thus interrupting process_queue
+        # here is where you should close any connections and cleanup files, etc
         pass
 
 

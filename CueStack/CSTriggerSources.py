@@ -54,8 +54,8 @@ class CSTriggerGenericWebsocket:
         self.port = int(self.config['port'])
         self.clients = set()
         logging.info('Starting Websocket Trigger Source on port %s', self.port)
-        self.queue_ws_inbound = CSSafeQueue(loop=self.loop, maxsize=0)
-        self.queue_ws_outbound = CSSafeQueue(loop=self.loop, maxsize=0)
+        self.queue_ws_inbound = CSSafeQueue(loop=self.loop)
+        self.queue_ws_outbound = CSSafeQueue(loop=self.loop)
         # TODO dont know why the linter hates _websocket_handler right now, but it works just fine
         _ws_instance = websockets.serve(self._websocket_handler, host=self.host, port=self.port, loop=self.loop)
         self.loop.run_until_complete(_ws_instance)

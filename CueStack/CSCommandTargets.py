@@ -21,6 +21,7 @@ import socket
 import websocket
 import multiprocessing
 import paho.mqtt.client as mqtt
+from abc import ABC, abstractmethod
 
 from obswebsocket import obsws as obs_client
 from obswebsocket import requests as obs_requests
@@ -29,64 +30,109 @@ from urllib.request import urlopen
 from urllib.parse import urlencode
 from CSLogger import get_mplogger
 
-# this sets log level for things in a separate process
-TARGET_LOG_LEVEL = logging.DEBUG
 
-# Target classes must implement three methods:
-#   __init__
-#       must take exactly three arguments:
-#           config - dictionary holding target config exactly as defined in config.json
-#           name - the name to assign to the process for logging
-#           queue - the queue (instance of multiprocessing.Queue) which will be used to pass messages from main thread
-#   send
-#       must take a single argument "command" which is a dictionary holding the command exactly as defined in config.json
-#   stop
-#       must take zero args, must handle proper shutdown of this target
+class CSCommandTarget:
+    # base implementation of a command target
+    data = {}
+
+    def __init__(self, config_obj):
+        self.config_obj = config_obj
+        self.should_run = True
+        self.description = 'Unnamed Target'
+        try:
+            self.name = self.config_obj['name']
+            self.config = self.config_obj['config']
+            self.queue = self.config_obj['queue']
+            self.logger = get_mplogger(name=self.name, level=logging.DEBUG)
+            self.setup()
+        except Exception as ex:
+            self.logger.error('unexpected exception while setting up command target: %s' % ex)
+            self.stop()
+        else:
+            self.logger.info('Starting %s command target: %s' % (self.description, self.name))
+            self.process_queue()
+
+    def process_queue(self):
+        try:
+            while self.should_run:
+                if not self.queue.empty():
+                    command = self.queue.get()
+                    self.send(command)
+        except KeyboardInterrupt:
+            pass
+        except Exception as ex:
+            self.logger.error('unexpected exception while process_queue: %s' % ex)
+        self.stop()
+
+    def stop(self):
+        self.logger.info('Shutting down %s command target: %s' % (self.description, self.name))
+        self.should_run = False
+        self.shutdown()
+
+    def conv_msg_type(self, command):
+        # convert messages with message_type key in them
+        actual_message = command['message']
+        if 'message_type' in command:
+            if command['message_type'] == 'dict':
+                self.logger.debug('converting outbound message type "dict" to a json-encoded string')
+                actual_message = json.dumps(command['message'])
+        return actual_message
+
+    @abstractmethod
+    def setup(self):
+        pass
+
+    @abstractmethod
+    def send(self, command):
+        pass
+
+    @abstractmethod
+    def shutdown(self):
+        pass
 
 
-class CSTargetOBS:
+class CSTargetOBS(CSCommandTarget):
     # Control OBS Studio using the obs-websocket plugin
-    def __init__(self, config):
-        self.config = config
-        self.obs = obs_client(self.config['host'], self.config['port'], self.config['password'])
-        self.obs.connect()
+    def setup(self):
+        self.description = 'OBS Studio (via obs-websocket)'
+        self.data['client'] = obs_client(self.config['host'], self.config['port'], self.config['password'])
+        self.data['client'].connect()
 
     def send(self, command):
         try:
             method_to_call = getattr(obs_requests, command['request'])
         except AttributeError:
-            logging.error('request type not available in obs-websocket library: %s' % command['request'])
+            self.logger.error('request type not available in obs-websocket library: %s' % command['request'])
         except Exception as ex:
-            logging.error('unexpected exception while looking up obs request method: %s' % ex)
+            self.logger.error('unexpected exception while looking up obs request method: %s' % ex)
         else:
             try:
                 self.send_command(command, method_to_call)
             except Exception as ex:
-                logging.error('failure while trying to call obs request type: %s' % command['request'])
-                logging.error('exception was: %s' % ex)
-                logging.error('will reconnect and retry')
+                self.logger.error('failure while trying to call obs request type: %s' % command['request'])
+                self.logger.error('exception was: %s' % ex)
+                self.logger.error('will reconnect and retry')
                 self.retry(command, method_to_call)
 
     def send_command(self, command, method_to_call):
-        logging.info('sending obs-websocket command: %s' % json.dumps(command))
-        self.obs.call(method_to_call(**command['args']))
+        self.logger.info('sending obs-websocket command: %s' % json.dumps(command))
+        self.data['client'].call(method_to_call(**command['args']))
 
     def retry(self, command, method_to_call):
         try:
             self.reconnect()
             self.send_command(command, method_to_call)
         except Exception as ex:
-            logging.error('failed a second time to send obs-websocket command. will not retry again.')
+            self.logger.error('failed a second time to send obs-websocket command. will not retry again.')
 
     def reconnect(self):
-        logging.debug('reconnecting obs-websocket')
-        self.obs.disconnect()
-        self.obs = obs_client(self.config['host'], self.config['port'], self.config['password'])
-        self.obs.connect()
+        self.logger.debug('reconnecting obs-websocket')
+        self.data['client'].disconnect()
+        self.data['client'] = obs_client(self.config['host'], self.config['port'], self.config['password'])
+        self.data['client'].connect()
 
-    def stop(self):
-        logging.info('shutting down a connection to obs')
-        self.obs.disconnect()
+    def shutdown(self):
+        self.data['client'].disconnect()
 
 
 class CSTargetGenericOSC:
@@ -116,29 +162,31 @@ class CSTargetGenericOSC:
         logging.info('shutting down an Generic OSC connection')
 
 
-class CSTargetGenericTCP:
+class CSTargetGenericTCP(CSCommandTarget):
     # generic TCP target
-    def __init__(self, config):
-        self.config = config
+    def setup(self):
         try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.host = (self.config['host'], self.config['port'])
-            self.sock.connect(self.host)
+            self.data['sock'] = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.data['host'] = (self.config['host'], self.config['port'])
+            self.data['sock'].connect(self.data['host'])
         except Exception as ex:
-            logging.error('exception while trying to setup Generic TCP connection: %s' % ex)
+            self.logger.error('exception while trying to setup Generic TCP connection: %s' % ex)
             raise ex
+
+    def shutdown(self):
+        self.data['sock'].close()
 
     def send(self, command):
         try:
             actual_message = self.conv_msg_type(command)
             self.send_message(actual_message)
         except Exception as ex:
-            logging.error('exception while trying to send Generic TCP message: %s, will reconnect and retry' % ex)
+            self.logger.error('exception while trying to send Generic TCP message: %s, will reconnect and retry' % ex)
             self.retry(command)
 
     def send_message(self, message):
-        logging.info('sending Generic TCP message to %s: %s' % (self.host, message))
-        self.sock.sendall(bytes(message, "utf-8"))
+        self.logger.info('sending Generic TCP message to %s: %s' % (self.data['host'], message))
+        self.data['sock'].sendall(bytes(message, 'utf-8'))
 
     def retry(self, command):
         try:
@@ -146,63 +194,44 @@ class CSTargetGenericTCP:
             actual_message = self.conv_msg_type(command)
             self.send_message(actual_message)
         except Exception as ex:
-            logging.error('exception while trying to send Generic TCP message: %s, will not retry' % ex)
+            self.logger.error('exception while trying to send Generic TCP message: %s, will not retry' % ex)
             raise ex
 
     def reconnect(self):
-        self.sock.close()
-        self.sock.connect(self.host)
-
-    def conv_msg_type(self, command):
-        actual_message = command['message']
-        if 'message_type' in command:
-            if command['message_type'] == 'dict':
-                logging.debug('converting outbound message type "dict" to a json-encoded string')
-                actual_message = json.dumps(command['message'])
-        return actual_message
-
-    def stop(self):
-        logging.info('shutting down a Generic TCP connection')
-        self.sock.close()
+        self.data['sock'].close()
+        self.data['sock'].connect(self.data['host'])
 
 
-class CSTargetGenericUDP:
+class CSTargetGenericUDP(CSCommandTarget):
     # generic UDP target
-    def __init__(self, config):
-        self.config = config
+    def setup(self):
         try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.host = (self.config['host'], self.config['port'])
+            self.data['sock'] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.data['host'] = (self.config['host'], self.config['port'])
         except Exception as ex:
-            logging.error('exception while trying to setup Generic UDP connection: %s' % ex)
+            self.logger.error('exception while trying to setup Generic UDP connection: %s' % ex)
             raise ex
 
+    def shutdown(self):
+        self.data['sock'].close()
+
     def send(self, command):
-        logging.debug('sending Generic UDP message to %s: %s' % (self.host, command['message']))
+        self.logger.debug('sending Generic UDP message to %s: %s' % (self.data['host'], command['message']))
         try:
             actual_message = self.conv_msg_type(command)
-            self.sock.sendto(bytes(actual_message, "utf-8"), self.host)
+            self.data['sock'].sendto(bytes(actual_message, 'utf-8'), self.data['host'])
         except Exception as ex:
-            logging.error('exception while trying to send Generic UDP message: %s' % ex)
-
-    def conv_msg_type(self, command):
-        actual_message = command['message']
-        if 'message_type' in command:
-            if command['message_type'] == 'dict':
-                logging.debug('converting outbound message type "dict" to a json-encoded string')
-                actual_message = json.dumps(command['message'])
-        return actual_message
-
-    def stop(self):
-        logging.info('shutting down a Generic UDP connection')
-        self.sock.close()
+            self.logger.error('exception while trying to send Generic UDP message: %s' % ex)
 
 
-class CSTargetGenericHTTP:
+class CSTargetGenericHTTP(CSCommandTarget):
     # generic HTTP target
-    def __init__(self, config):
-        self.config = config
-        self.host = 'http://%s:%s' % (self.config['host'], self.config['port'])
+    def setup(self):
+        self.data['host'] = 'http://%s:%s' % (self.config['host'], self.config['port'])
+
+    def shutdown(self):
+        # no need
+        pass
 
     def send(self, command):
         # command['mesage'] = '/endpoint?foo=bar&beef=dead'
@@ -216,19 +245,15 @@ class CSTargetGenericHTTP:
             logging.error('exception while trying to send Generic HTTP message: %s' % ex)
 
     def conv_msg_type(self, command):
-        fullurl = '%s%s' % (self.host, command['message'])
+        fullurl = '%s%s' % (self.data['host'], command['message'])
         if 'message_type' in command:
             if command['message_type'] == 'dict':
                 params = urlencode(command['message']['params'])
-                fullurl = '%s/%s?%s' % (self.host, command['message']['path'], params)
+                fullurl = '%s/%s?%s' % (self.data['host'], command['message']['path'], params)
         return fullurl
 
-    def stop(self):
-        logging.info('shutting down a Generic HTTP connection')
-        logging.debug('generic HTTP target has no need to shutdown')
 
-
-class CSTargetGenericWebsocket:
+class CSTargetGenericWebsocket(CSCommandTarget):
     # generic Websocket target
 
     # Opcode,Meaning,Reference
@@ -244,45 +269,26 @@ class CSTargetGenericWebsocket:
     ok_opcodes = [0, 1, 2]
     bad_opcodes = [8, 9, 10]
 
-    def __init__(self, config, name, queue):
-        self.config = config
-        self.name = name
-        self.queue = queue
-        try:
-            self.logger = get_mplogger(name=self.name, level=TARGET_LOG_LEVEL)
-            self.logger.info('setting up websocket')
-            self.host = 'ws://%s:%s' % (self.config['host'], self.config['port'])
-            self.ws = websocket.WebSocket()
-        except Exception as ex:
-            self.logger.error('exception while setting up websocket target')
-            raise ex
-        try:
-            self.process_queue()
-        except:
-            pass
+    def setup(self):
+        self.description = 'Generic Websocket'
+        self.data['host'] = 'ws://%s:%s' % (self.config['host'], self.config['port'])
+        self.data['client'] = websocket.WebSocket()
+
+    def shutdown(self):
+        self.data['client'].close()
 
     def send(self, command):
-        self.logger.debug('queueing websocket message: %s' % command)
-        self.queue.put(command)
-
-    def process_queue(self):
-        while True:
-            if not self.queue.empty():
-                command = self.queue.get()
-                self._send(command)
-
-    def _send(self, command):
         actual_message = self.conv_msg_type(command)
         try:
-            self.logger.info('sending Generic Websocket message (%s): %s' % (self.host, actual_message))
-            self.ws.connect(self.host)
-            self.ws.send(actual_message)
-            reply = self.ws.recv_frame()
+            self.logger.info('sending Generic Websocket message (%s): %s' % (self.data['host'], actual_message))
+            self.data['client'].connect(self.data['host'])
+            self.data['client'].send(actual_message)
+            reply = self.data['client'].recv_frame()
             if reply.opcode not in self.ok_opcodes:
                 self.logger.error('reply from Generic Websocket: %s' % reply)
                 raise Exception('reply opcode was not in ok_opcodes, was %s' % reply.opcode)
             self.logger.debug('reply from Generic Websocket: %s' % reply)
-            self.ws.close()
+            self.data['client'].close()
         except Exception as ex:
             self.logger.error('exception while trying to send Generic Websocket message: (%s), will reconnect and retry' % ex)
             self.retry(actual_message)
@@ -290,63 +296,41 @@ class CSTargetGenericWebsocket:
     def retry(self, message):
         try:
             self.reconnect()
-            self.logger.info('sending Generic Websocket message (%s): %s' % (self.host, message))
-            self.ws.send(message)
-            reply = self.ws.recv_frame()
+            self.logger.info('sending Generic Websocket message (%s): %s' % (self.data['host'], message))
+            self.data['client'].send(message)
+            reply = self.data['client'].recv_frame()
             if reply.opcode not in self.ok_opcodes:
                 self.logger.error('reply from Generic Websocket: %s' % reply)
                 raise Exception('reply opcode was not in ok_opcodes, was %s' % reply.opcode)
             self.logger.debug('reply from Generic Websocket (second attempt): %s' % reply)
-            self.ws.close()
+            self.data['client'].close()
         except Exception as ex:
             self.logger.error('Generic Websocket send failed (%s) on second attempt, giving up' % ex)
 
     def reconnect(self):
-        self.logger.debug('reconnecting websocket: %s' % self.host)
-        self.ws.close()
-        self.ws.connect(self.host)
-
-    def conv_msg_type(self, command):
-        actual_message = command['message']
-        if 'message_type' in command:
-            if command['message_type'] == 'dict':
-                self.logger.debug('converting outbound message type "dict" to a json-encoded string')
-                actual_message = json.dumps(command['message'])
-        return actual_message
-
-    def stop(self):
-        self.logger.info('shutting down a Generic Websocket connection process')
-        self.ws.close()
+        self.logger.debug('reconnecting websocket: %s' % self.data['host'])
+        self.data['client'].close()
+        self.data['client'].connect(self.data['host'])
 
 
-class CSTargetGenericMQTT:
+class CSTargetGenericMQTT(CSCommandTarget):
     # generic MQTT target
-    def __init__(self, config):
-        self.config = config
-        try:
-            self.host = (self.config['host'], self.config['port'])
-            self.client = mqtt.Client('CueStack')
-            self.client.connect(self.config['host'], self.config['port'])
-        except Exception as ex:
-            logging.error('exception while setting up MQTT target')
-            raise ex
+
+    def setup(self):
+        self.description = 'Generic MQTT'
+        self.data['client'] = mqtt.Client('CueStack')
+        self.data['client'].connect(self.config['host'], self.config['port'])
+
+    def shutdown(self):
+        self.data['client'].disconnect()
 
     def send(self, command):
-        logging.info('sending Generic MQTT message: server: %s, topic: %s, message: %s' % (self.host, command['topic'], command['message']))
+        host = (self.config['host'], self.config['port'])
+        self.logger.info('sending Generic MQTT message: server: %s, topic: %s, message: %s' % (host, command['topic'], command['message']))
         try:
             actual_message = self.conv_msg_type(command)
-            self.client.publish(command['topic'], actual_message)
+            self.data['client'].publish(command['topic'], actual_message)
         except Exception as ex:
-            logging.error('exception while trying to send Generic MQTT message: %s' % ex)
+            self.logger.error('exception while trying to send Generic MQTT message: %s' % ex)
 
-    def conv_msg_type(self, command):
-        actual_message = command['message']
-        if 'message_type' in command:
-            if command['message_type'] == 'dict':
-                logging.debug('converting outbound message type "dict" to a json-encoded string')
-                actual_message = json.dumps(command['message'])
-        return actual_message
 
-    def stop(self):
-        logging.info('shutting down a Generic MQTT connection')
-        self.client.disconnect()

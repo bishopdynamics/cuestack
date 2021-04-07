@@ -80,6 +80,21 @@
               }
             }
           ]
+        },
+        {
+          "name": "mqtt_test",
+          "parts": [
+            {
+              "target": "mqtt-tester",
+              "command": {
+                "topic": "AnotherDumbTopic",
+                "message_type": "dict",
+                "message": {
+                  "msg": "hello"
+                }
+              }
+            }
+          ]
         }
       ]
     }
@@ -155,6 +170,15 @@
       "config": {
         "host": "localhost",
         "port": 8008
+      }
+    },
+    {
+      "enabled": true,
+      "name": "mqtt-tester",
+      "type": "mqtt-generic",
+      "config": {
+        "host": "james-broker",
+        "port": 1883
       }
     }
   ],

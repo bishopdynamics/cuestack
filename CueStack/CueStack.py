@@ -93,30 +93,17 @@ class CueStackService:
                     logging.warning('ignoring disabled command target: %s' % this_target['name'])
                 else:
                     logging.info('setting up command target: %s' % this_target['name'])
-                    this_type = this_target['type']
-                    this_config = this_target['config']
-                    # if this_type == 'obs-websocket':
-                    #     self.command_targets[this_target['name']] = CSTargetOBS(this_config)
-                    # elif this_type == 'osc-generic':
-                    #     self.command_targets[this_target['name']] = CSTargetGenericOSC(this_config)
-                    # elif this_type == 'tcp-generic':
-                    #     self.command_targets[this_target['name']] = CSTargetGenericTCP(this_config)
-                    # elif this_type == 'udp-generic':
-                    #     self.command_targets[this_target['name']] = CSTargetGenericUDP(this_config)
-                    # elif this_type == 'http-generic':
-                    #     self.command_targets[this_target['name']] = CSTargetGenericHTTP(this_config)
-                    # elif this_type == 'websocket-generic':
-                    #     self.command_queues[this_target['name']] = Queue()
-                    #     self.command_targets[this_target['name']] = Process(target=self.target_map[this_type], args=(this_config, this_target['name'], self.command_queues[this_target['name']]))
-                    #     self.command_targets[this_target['name']].start()
-                    # elif this_type == 'mqtt-generic':
-                    #     self.command_targets[this_target['name']] = CSTargetGenericMQTT(this_config)
-                    if this_type in self.target_map:
+                    if this_target['type'] in self.target_map:
                         self.command_queues[this_target['name']] = Queue()
-                        self.command_targets[this_target['name']] = Process(target=self.target_map[this_type], args=(this_config, this_target['name'], self.command_queues[this_target['name']]))
+                        this_config_obj = {
+                            'config': this_target['config'],  # config for this target, straight from config.json
+                            'name': 'ct:%s' % this_target['name'],  # this will be the name used in logging
+                            'queue': self.command_queues[this_target['name']]  # the queue for passing command messages to this target
+                        }
+                        self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
                         self.command_targets[this_target['name']].start()
                     else:
-                        raise Exception('command target %s unknown type: %s' % (this_target['name'], this_type))
+                        raise Exception('command target %s unknown type: %s' % (this_target['name'], this_target['type']))
             except Exception:
                 logging.exception('something went wrong while configuring one of the command targets')
                 raise Exception('failed to setup command targets')

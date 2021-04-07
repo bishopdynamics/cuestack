@@ -71,10 +71,10 @@ class CustomFormatter(logging.Formatter):
         if self.auto_colorized:
 
             format_prefix = f"{Colors.purple}%(asctime)s{Colors.reset} " \
-                            f"{Colors.blue}%(name)s ({self.name}){Colors.reset} " \
+                            f"{Colors.blue}%(name)s{Colors.reset} " \
                             f"{Colors.light_blue}(%(filename)s:%(lineno)d){Colors.reset} "
 
-            format_suffix = "%(levelname)s - %(message)s"
+            format_suffix = f"[{self.name}] %(levelname)s - %(message)s"
 
             return {
                 logging.DEBUG: format_prefix + Colors.blue + format_suffix + Colors.reset,

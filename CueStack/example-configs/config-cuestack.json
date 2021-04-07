@@ -312,11 +312,11 @@
   ],
   "command_targets": [
     {
-      "enabled": false,
+      "enabled": true,
       "name": "obs",
       "type": "obs-websocket",
       "config": {
-        "host": "192.168.1.74",
+        "host": "localhost",
         "port": 4444,
         "password": "secret"
       }
@@ -376,7 +376,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "voicemeeter",
       "type": "websocket-generic",
       "config": {
@@ -395,7 +395,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "GenericHTTP",
       "type": "http",
       "config": {
@@ -403,7 +403,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "GenericMQTT",
       "type": "mqtt",
       "config": {

@@ -19,7 +19,7 @@ from queue import Full as SyncQueueFull
 from typing import Any, Callable, Deque, Generic, List, Optional, Set, TypeVar
 
 __version__ = "0.6.1"
-__all__ = ("Queue", "PriorityQueue", "LifoQueue")
+__all__ = ("Queue", "PriorityQueue", "LifoQueue", "CSSafeQueue")
 
 
 T = TypeVar("T")
@@ -565,3 +565,20 @@ class LifoQueue(Queue[T]):
 
     def _get(self) -> T:
         return self._queue.pop()
+
+
+class CSSafeQueue(Queue):
+    # threadsafe, asyncio safe, Queue with standard methods added back
+    # note that we build upon a modified janus library
+
+    def empty(self):
+        return self._qsize() < 1
+
+    def put(self, item):
+        self._put(item)
+
+    def get(self):
+        return self._get()
+
+    def length(self):
+        return self._qsize()

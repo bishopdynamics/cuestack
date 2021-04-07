@@ -20,29 +20,12 @@ import asyncio
 import logging
 import websockets
 
-import CSJanus
+from CSJanus import CSSafeQueue
 import paho.mqtt.client as mqtt
 
 from threading import Thread
 from aiohttp import web
 from urllib.parse import urlparse, parse_qs
-
-
-class CSSafeQueue(CSJanus.Queue):
-    # threadsafe, asyncio safe, Queue with standard methods added back
-    # note that we build upon a modified janus library
-
-    def empty(self):
-        return self._qsize() < 1
-
-    def put(self, item):
-        self._put(item)
-
-    def get(self):
-        return self._get()
-
-    def length(self):
-        return self._qsize()
 
 
 # A "trigger" class must take a receive handler function as argument to __init__, and call that whenever a trigger event is received

@@ -19,9 +19,8 @@ import json
 import logging
 import socket
 import websocket
-import multiprocessing
 import paho.mqtt.client as mqtt
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from obswebsocket import obsws as obs_client
 from obswebsocket import requests as obs_requests
@@ -135,36 +134,37 @@ class CSTargetOBS(CSCommandTarget):
         self.data['client'].disconnect()
 
 
-class CSTargetGenericOSC:
+class CSTargetGenericOSC(CSCommandTarget):
     # generic OSC target
-    def __init__(self, config):
-        self.config = config
+    def setup(self):
+        self.description = 'Generic OSC'
         try:
-            self.osc = udp_client.SimpleUDPClient(self.config['host'], self.config['port'])
-            self.host = (self.config['host'], self.config['port'])
+            self.data['client'] = udp_client.SimpleUDPClient(self.config['host'], self.config['port'])
+            self.data['host'] = (self.config['host'], self.config['port'])
         except Exception as ex:
-            logging.error('exception while trying to setup Generic OSC connection: %s' % ex)
+            self.logger.error('exception while trying to setup Generic OSC connection: %s' % ex)
             raise ex
+
+    def shutdown(self):
+        pass
 
     def send(self, command):
         if 'value' in command:
             realvalue = command['value']
         else:
-            logging.debug('no value in command, using default of 1')
+            self.logger.debug('no value in command, using default of 1')
             realvalue = 1
-        logging.info('sending Generic OSC message %s: %s %s' % (self.host, command['address'], realvalue))
+        self.logger.info('sending Generic OSC message %s: %s %s' % (self.data['host'], command['address'], realvalue))
         try:
-            self.osc.send_message(command['address'], realvalue)
+            self.data['client'].send_message(command['address'], realvalue)
         except Exception as ex:
-            logging.error('exception while trying to send Generic OSC message: %s' % ex)
-
-    def stop(self):
-        logging.info('shutting down an Generic OSC connection')
+            self.logger.error('exception while trying to send Generic OSC message: %s' % ex)
 
 
 class CSTargetGenericTCP(CSCommandTarget):
     # generic TCP target
     def setup(self):
+        self.description = 'Generic TCP'
         try:
             self.data['sock'] = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.data['host'] = (self.config['host'], self.config['port'])
@@ -205,6 +205,7 @@ class CSTargetGenericTCP(CSCommandTarget):
 class CSTargetGenericUDP(CSCommandTarget):
     # generic UDP target
     def setup(self):
+        self.description = 'Generic UDP'
         try:
             self.data['sock'] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.data['host'] = (self.config['host'], self.config['port'])
@@ -227,6 +228,7 @@ class CSTargetGenericUDP(CSCommandTarget):
 class CSTargetGenericHTTP(CSCommandTarget):
     # generic HTTP target
     def setup(self):
+        self.description = 'Generic HTTP'
         self.data['host'] = 'http://%s:%s' % (self.config['host'], self.config['port'])
 
     def shutdown(self):
@@ -236,13 +238,13 @@ class CSTargetGenericHTTP(CSCommandTarget):
     def send(self, command):
         # command['mesage'] = '/endpoint?foo=bar&beef=dead'
         fullurl = self.conv_msg_type(command)
-        logging.info('sending Generic HTTP message: %s' % fullurl)
+        self.logger.info('sending Generic HTTP message: %s' % fullurl)
         try:
             response = urlopen(url=fullurl)
             result = response.read()
-            logging.debug(result)
+            self.logger.debug(result)
         except Exception as ex:
-            logging.error('exception while trying to send Generic HTTP message: %s' % ex)
+            self.logger.error('exception while trying to send Generic HTTP message: %s' % ex)
 
     def conv_msg_type(self, command):
         fullurl = '%s%s' % (self.data['host'], command['message'])

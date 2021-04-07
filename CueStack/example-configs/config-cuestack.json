@@ -251,6 +251,24 @@
               }
             }
           ]
+        },
+        {
+          "name": "test_http",
+          "parts": [
+            {
+              "target": "http-example",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "path": "deadbeef",
+                  "params": {
+                    "foo": 1,
+                    "bar": "clementine"
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -312,7 +330,7 @@
   ],
   "command_targets": [
     {
-      "enabled": true,
+      "enabled": false,
       "name": "obs",
       "type": "obs-websocket",
       "config": {
@@ -322,7 +340,7 @@
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "qlcplus",
       "type": "osc-generic",
       "config": {
@@ -349,7 +367,7 @@
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "http-example",
       "type": "http-generic",
       "config": {

@@ -7,13 +7,13 @@ rmdir /S /Q "%CWD%\dist"
 mkdir "%CWD%\dist"
 
 cd "%CWD%\CueStackClient"
-build
+CALL build
 move "%CWD%\CueStackClient\dist\CueStackClient.exe" "%CWD%\dist\"
 rmdir /S /Q "%CWD%\CueStackClient\dist"
 cd "%CWD%"
 
 cd "%CWD%\CueStack"
-build
+CALL build
 move "%CWD%\CueStack\dist\*" "%CWD%\dist\"
 rmdir /S /Q "%CWD%\CueStack\dist"
 cd "%CWD%"

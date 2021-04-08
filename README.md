@@ -15,7 +15,6 @@ License: [Proprietary](LICENSE.txt)
 
 ## Prebuilt Binaries for Windows
 
-For CueStack and VoicemeeterAgent, we have prebuilt binaries for Windows here: [CueStack/dist](CueStack/dist).
-To use them, place `CueStack.exe` in a folder with your `config-cuestack.json`, and double-click on `CueStack.exe`. The same applies to `VoicemeeterAgent.exe` with `config-voicemeeteragent.json`.
+For CueStack, CueStackClient, and VoicemeeterAgent, we have prebuilt binaries for Windows here: [dist](dist). For CueStack and VoicemeeterAgent, you will need a config file, see [Quick Start](CueStack/README.md#quick-start) 
 
 You may need to install [Visual C++ Redist 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145), but this is probably only needed for older versions of Windows.

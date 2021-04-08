@@ -4,6 +4,7 @@
 
    * [CueStack](#cuestack)
       * [Intro to CueStack](#intro-to-cuestack)
+      * [Quick Start](#quick-start)
       * [Vocabulary](#vocabulary)
       * [Limitations](#limitations)
       * [Conceptual Diagram](#conceptual-diagram)

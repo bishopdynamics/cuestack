@@ -38,14 +38,20 @@ class CueStackService:
     trigger_sources = {}  # objects managing a connection to a trigger source live here
     command_targets = {}  # holds the processes (multithreading) that handle sending command target messages
     command_queues = {}  # holds the queues for pushing messages to the process which sends them
-    target_map = {
+    trigger_queue = None  # trigger sources place received messages in this queue, which the message processor then pulls from
+    target_map = {  # this maps command target types to the corresponding class
         'obs-websocket': CSTargetOBS,
         'osc-generic': CSTargetGenericOSC,
         'tcp-generic': CSTargetGenericTCP,
         'udp-generic': CSTargetGenericUDP,
         'http-generic': CSTargetGenericHTTP,
         'websocket-generic': CSTargetGenericWebsocket,
-        'mqtt-generic': CSTargetGenericMQTT
+        'mqtt-generic': CSTargetGenericMQTT,
+    }
+    trigger_map = {
+        'websocket': CSTriggerGenericWebsocket,
+        'http': CSTriggerGenericHTTP,
+        'mqtt': CSTriggerGenericMQTT,
     }
 
     def __init__(self, args):
@@ -57,6 +63,7 @@ class CueStackService:
         config_file = path_base.joinpath(self.args.config)
         logging.info('using config file: %s' % config_file)
         try:
+            self.trigger_queue = Queue()
             with open(config_file, 'r') as cf:
                 self.config = json.load(cf)
         except Exception as e:
@@ -98,7 +105,7 @@ class CueStackService:
                         this_config_obj = {
                             'config': this_target['config'],  # config for this target, straight from config.json
                             'name': 'ct:%s' % this_target['name'],  # this will be the name used in logging
-                            'queue': self.command_queues[this_target['name']]  # the queue for passing command messages to this target
+                            'queue': self.command_queues[this_target['name']],  # the queue for passing command messages to this target
                         }
                         self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
                         self.command_targets[this_target['name']].start()
@@ -120,16 +127,17 @@ class CueStackService:
                     logging.warning('ignoring disabled trigger source: %s' % this_source['name'])
                 else:
                     logging.info('setting up trigger source: %s' % this_source['name'])
-                    this_type = this_source['type']
-                    this_config = this_source['config']
-                    if this_type == 'websocket':
-                        self.trigger_sources[this_source['name']] = CSTriggerGenericWebsocket(this_config, self.msg_processor.handle, self.loop)
-                    elif this_type == 'http':
-                        self.trigger_sources[this_source['name']] = CSTriggerGenericHTTP(this_config, self.msg_processor.handle, self.loop)
-                    elif this_type == 'mqtt':
-                        self.trigger_sources[this_source['name']] = CSTriggerGenericMQTT(this_config, self.msg_processor.handle, self.loop)
+                    if this_source['type'] in self.trigger_map:
+                        this_config_obj = {
+                            'config': this_source['config'],
+                            'name': 'ts:%s' % this_source['name'],
+                            'queue': self.trigger_queue,
+                            'handler': self.msg_processor.handle,
+                            'loop': self.loop,
+                        }
+                        self.trigger_sources[this_source['name']] = self.trigger_map[this_source['type']](this_config_obj)
                     else:
-                        raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_type))
+                        raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_source['type']))
             except Exception:
                 logging.exception('something went wrong while configuring one of the trigger sources')
                 raise Exception('failed to setup trigger sources')

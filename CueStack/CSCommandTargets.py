@@ -15,6 +15,7 @@
 #   toddos (annotations linter handling this)
 # pylint: disable=C0111,W0703,C0301,R0912,R0915,R0904,C0302,R1702,W0511
 
+import time
 import json
 import logging
 import socket
@@ -57,6 +58,7 @@ class CSCommandTarget:
                 if not self.queue.empty():
                     command = self.queue.get()
                     self.send(command)
+                time.sleep(0.1)
         except KeyboardInterrupt:
             pass
         except Exception as ex:

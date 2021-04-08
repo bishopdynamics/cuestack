@@ -15,6 +15,7 @@
 #   toddos (annotations linter handling this)
 # pylint: disable=C0111,W0703,C0301,R0912,R0915,R0904,C0302,R1702,W0511
 
+import time
 import json
 import asyncio
 import logging
@@ -46,10 +47,12 @@ class CSTriggerGenericWebsocket:
     queue_ws_inbound = None
     queue_ws_outbound = None
 
-    def __init__(self, config, receive_handler, loop):
-        self.config = config
-        self.receive_handler = receive_handler
-        self.loop = loop
+    def __init__(self, config_obj):
+        self.config = config_obj['config']
+        self.receive_handler = config_obj['handler']
+        self.loop = config_obj['loop']
+        self.name = config_obj['name']
+        self.queue = config_obj['queue']
         self.host = ''
         self.port = int(self.config['port'])
         self.clients = set()
@@ -78,6 +81,7 @@ class CSTriggerGenericWebsocket:
                         self._websocket_receive(_item)
                     except Exception:
                         logging.exception('Error while processing an inbound websocket message queue')
+                time.sleep(0.1)  # lets the outbound task do something
 
     async def _websocket_handler(self, websocket, path):
         # this is the handler given to the websocket server to handle in/out
@@ -144,10 +148,12 @@ class CSTriggerGenericHTTP:
     http_thread = None
     site = None
 
-    def __init__(self, config, receive_handler, loop):
-        self.config = config
-        self.receive_handler = receive_handler
-        self.loop = loop
+    def __init__(self, config_obj):
+        self.config = config_obj['config']
+        self.receive_handler = config_obj['handler']
+        self.loop = config_obj['loop']
+        self.name = config_obj['name']
+        self.queue = config_obj['queue']
         self.host = ''
         self.port = int(self.config['port'])
         try:
@@ -190,10 +196,12 @@ class CSTriggerGenericHTTP:
 class CSTriggerGenericMQTT:
     # Listens on a given mqtt topic for triggers
 
-    def __init__(self, config, receive_handler, loop):
-        self.config = config
-        self.receive_handler = receive_handler
-        self.loop = loop
+    def __init__(self, config_obj):
+        self.config = config_obj['config']
+        self.receive_handler = config_obj['handler']
+        self.loop = config_obj['loop']
+        self.name = config_obj['name']
+        self.queue = config_obj['queue']
         try:
             self.host = self.config['host']
             self.port = int(self.config['port'])

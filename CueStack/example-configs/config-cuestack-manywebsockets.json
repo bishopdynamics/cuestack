@@ -183,7 +183,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "GenericHTTP",
       "type": "http",
       "config": {
@@ -191,7 +191,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "GenericMQTT",
       "type": "mqtt",
       "config": {

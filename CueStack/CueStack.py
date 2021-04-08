@@ -30,40 +30,39 @@ from CSMessageProcessor import CSMessageProcessor
 
 
 class CueStackService:
-    config = None  # parsed config lives here
 
     def __init__(self, args):
         logging.info('CueStack is starting...')
-        self.args = args
         path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
         path_cwd = pathlib.Path.cwd()  # this is the current working directory, not necessarily where .py is located
         path_base = path_cwd
-        config_file = path_base.joinpath(self.args.config)
+        config_file = path_base.joinpath(args.config)
         logging.info('using config file: %s' % config_file)
         try:
             with open(config_file, 'r') as cf:
-                self.config = json.load(cf)
+                config = json.load(cf)
         except Exception as e:
             logging.error('exception while parsing config file (%s): %s' % (config_file, e))
-            self.stop(1)
-        try:
-            logging.info('setting up structures')
-            self.loop = asyncio.new_event_loop()
-            self.msg_processor = CSMessageProcessor(self.config, self.loop)
+            sys.exit(1)
+        else:
+            try:
+                logging.info('setting up structures')
+                self.loop = asyncio.new_event_loop()
+                self.msg_processor = CSMessageProcessor(config, self.loop)
+            except Exception as ex:
+                logging.error('exception while setting up structures: %s' % ex)
+                self.stop(1)
 
-        except Exception as ex:
-            logging.error('exception while setting up structures: %s' % ex)
-            self.stop(1)
-
-        signal.signal(signal.SIGTERM, self.handle_signal)
-        signal.signal(signal.SIGINT, self.handle_signal)
-        logging.info('CueStack Server is ready')
-        try:
-            self.loop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        except Exception as ex:
-            logging.error('Unexpected Exception while setting up CueStack Server: %s', ex)
+            signal.signal(signal.SIGTERM, self.handle_signal)
+            signal.signal(signal.SIGINT, self.handle_signal)
+            logging.info('CueStack Server is ready')
+            try:
+                self.loop.run_until_complete(asyncio.sleep(0))
+                self.loop.run_forever()
+            except KeyboardInterrupt:
+                pass
+            except Exception as ex:
+                logging.error('Unexpected Exception while setting up CueStack Server: %s', ex)
             self.stop(1)
 
     def handle_signal(self, this_signal, this_frame=None):

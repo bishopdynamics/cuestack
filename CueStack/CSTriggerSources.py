@@ -81,7 +81,7 @@ class CSTriggerGenericWebsocket:
                         self._websocket_receive(_item)
                     except Exception:
                         logging.exception('Error while processing an inbound websocket message queue')
-                time.sleep(0.1)  # lets the outbound task do something
+            time.sleep(0.01)  # lets the outbound task do something
 
     async def _websocket_handler(self, websocket, path):
         # this is the handler given to the websocket server to handle in/out
@@ -94,6 +94,7 @@ class CSTriggerGenericWebsocket:
             )
             for task in pending:
                 task.cancel()
+            asyncio.sleep(0)
         except Exception:
             logging.exception('Unexpected exception in websocket_handler')
 
@@ -104,6 +105,7 @@ class CSTriggerGenericWebsocket:
                 self.queue_ws_inbound.put(message)
         except:
             pass  # TODO dont particularly care about errors here
+        await asyncio.sleep(0)
 
     async def _websocket_outbound_handler(self, websocket, path):
         while True:
@@ -126,8 +128,11 @@ class CSTriggerGenericWebsocket:
                             self.clients.remove(_this_client)
                         except Exception:
                             logging.exception('Unexpected exception while trying to remove a bad client from list')
+                            pass
                 except Exception:
                     logging.exception('Unexpected exception while trying to send ws msg to all clients')
+                    pass
+                await asyncio.sleep(0)
             await asyncio.sleep(0)  # lets the inbound task do something
 
     def _websocket_receive(self, msg):

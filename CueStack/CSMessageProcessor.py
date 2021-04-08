@@ -45,10 +45,11 @@ class CSMessageProcessor:
         'mqtt': CSTriggerGenericMQTT,
     }
 
-    def __init__(self, config, loop):
+    def __init__(self, config, log_level, loop):
         logging.debug('Initializing a CSMessageProcessor')
         self.config = config
         self.loop = loop
+        self.log_level = log_level
         self.trigger_queue = Queue()
         self.current_cue_stack = self.find_stack(config['default_stack'])
         self.setup_command_targets()
@@ -238,6 +239,7 @@ class CSMessageProcessor:
                     'config': this_target['config'],  # config for this target, straight from config.json
                     'name': 'ct:%s' % this_target['name'],  # this will be the name used in logging
                     'queue': self.command_queues[this_target['name']],  # the queue for passing command messages to this target
+                    'log_level': self.log_level  # passing log level to target so it can act accordingly
                 }
                 self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
                 self.command_targets[this_target['name']].start()

@@ -31,7 +31,7 @@ from CSMessageProcessor import CSMessageProcessor
 
 class CueStackService:
 
-    def __init__(self, args):
+    def __init__(self, args, log_level):
         logging.info('CueStack is starting...')
         path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
         path_cwd = pathlib.Path.cwd()  # this is the current working directory, not necessarily where .py is located
@@ -48,7 +48,7 @@ class CueStackService:
             try:
                 logging.info('setting up structures')
                 self.loop = asyncio.new_event_loop()
-                self.msg_processor = CSMessageProcessor(config, self.loop)
+                self.msg_processor = CSMessageProcessor(config, log_level, self.loop)
             except Exception as ex:
                 logging.error('exception while setting up structures: %s' % ex)
                 self.stop(1)
@@ -109,4 +109,4 @@ if __name__ == "__main__":
     logger = get_logger(name=__name__,
                         level=LOG_LEVEL)
     assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
-    CS = CueStackService(ARGS)
+    CS = CueStackService(ARGS, LOG_LEVEL)

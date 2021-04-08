@@ -43,7 +43,7 @@ class CSCommandTarget:
             self.name = self.config_obj['name']
             self.config = self.config_obj['config']
             self.queue = self.config_obj['queue']
-            self.logger = get_mplogger(name=self.name, level=logging.DEBUG)
+            self.logger = get_mplogger(name=self.name, level=self.config_obj['log_level'])
             self.setup()
         except Exception as ex:
             self.logger.error('unexpected exception while setting up command target: %s' % ex)

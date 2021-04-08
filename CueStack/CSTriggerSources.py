@@ -94,7 +94,7 @@ class CSTriggerGenericWebsocket:
             )
             for task in pending:
                 task.cancel()
-            asyncio.sleep(0)
+            await asyncio.sleep(0)
         except Exception:
             logging.exception('Unexpected exception in websocket_handler')
 

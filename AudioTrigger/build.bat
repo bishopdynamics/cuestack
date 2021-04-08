@@ -6,8 +6,8 @@ echo current working directory: %CWD%
 rmdir /S /Q "%CWD%\dist"
 mkdir "%CWD%\dist"
 
-npm install -g nexe
-npm install
+CALL npm install -g nexe
+CALL npm install
 nexe index.js -t x64-14.15.3 -r "public" -r "node_modules"
 
 move AudioTrigger.exe .\dist\

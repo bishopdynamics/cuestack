@@ -6,44 +6,6 @@ WS_OPTIONS = {
     "reconnectInterval": 4000
 }
 
-WS = null;
-
-function ws_onopen (event) {
-    UpdateWSStatus('websocket connected');
-    RequestCurrentStack();
-    RequestStacks();
-    RequestCues();
-}
-
-function ws_onmessage (event) {
-    UpdateWSStatus('received message: ' + event.data);
-    try {
-        parsed_message = JSON.parse(event.data);
-        HandleMessage(parsed_message);
-    } catch (e) {
-        UpdateWSStatus("exception while parsing message: " + e);
-    }
-}
-
-function ws_onclose (event) {
-    console.log(event)
-    if (event.wasClean) {
-        UpdateWSStatus('websocket disconnected cleanly');
-    } else {
-        if(event.code == 1006) {
-            UpdateWSStatus('websocket connection was lost')
-        } else if(event.code == 1001){
-            UpdateWSStatus('websocket connection went away or was shut down')
-        } else {
-            UpdateWSStatus('websocket disconnected with error code: ' + event.code);
-        }
-    }
-}
-
-function ws_onerror (event) {
-    UpdateWSStatus(event.message);
-}
-
 function UpdateWSStatus(message){
     console.log('ws status: ' + message);
     let thing = document.querySelector('#websocket-status');
@@ -148,18 +110,42 @@ function TriggerStack(stackname) {
 }
 
 function SendMessage(message) {
-    msg = JSON.stringify(message);
-    console.log('sending message: ' + msg)
-    WS.send(msg);
+    // we open a fresh websocket connection for every message, which will auto-close after 200ms
+    let msg = JSON.stringify(message);
+    let client = new WebSocket("ws://" + WEBSOCKET_HOST + ":" + WEBSOCKET_PORT)
+    client.onopen = function(event){
+        console.log('sending message: ' + msg)
+        client.send(msg);
+        setTimeout(function(){
+            client.close()
+        }, 200)
+    }
+    client.onmessage = function(event){
+        UpdateWSStatus('received message: ' + event.data);
+        try {
+            parsed_message = JSON.parse(event.data);
+            HandleMessage(parsed_message);
+        } catch (e) {
+            UpdateWSStatus("exception while parsing message: " + e);
+        }
+    }
+    client.onerror = function(event) {
+        UpdateWSStatus(event.message);
+        CloseWebsocket(this);
+    }
 }
+
+function GetStatus() {
+    RequestCurrentStack();
+    RequestStacks();
+    RequestCues();
+}
+
 
 function Setup() {
     console.log('setting up...')
-    WS = new ReconnectingWebSocket("ws://" + WEBSOCKET_HOST + ":" + WEBSOCKET_PORT, null, WS_OPTIONS);
-    WS.onopen = ws_onopen;
-    WS.onclose = ws_onclose;
-    WS.onmessage = ws_onmessage;
-    WS.onerror = ws_onerror;
+    GetStatus();
+    // setInterval(GetStatus, 4000)
 }
 
 document.addEventListener('DOMContentLoaded', function() {

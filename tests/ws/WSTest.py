@@ -18,17 +18,14 @@ if platform.system() == 'Windows':
 
 
 async def ws_server(websocket, path):
-    while True:
-        try:
-            message = await websocket.recv()
-            timestamp = str(datetime.now())
-            print('%s  received message: %s' % (timestamp, message))
-            reply = {'status': 'OK', 'received_timestamp': timestamp}
-            await websocket.send(json.dumps(reply))
-        except websockets.ConnectionClosed:
-            # print(f"Terminated")
-            # break
-            continue
+    try:
+        message = await websocket.recv()
+        timestamp = str(datetime.now())
+        print('%s  received message: %s' % (timestamp, message))
+        reply = {'status': 'OK', 'received_timestamp': timestamp}
+        await websocket.send(json.dumps(reply))
+    except websockets.ConnectionClosed:
+        print(f"warning: got websockets.ConnectionClosed")
 
 
 def handle_windows_signal(a, b=None):
@@ -52,7 +49,6 @@ if __name__ == "__main__":
 
     try:
         asyncio.get_event_loop().run_until_complete(start_server)
-        asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
         asyncio.get_event_loop().run_forever()
     except KeyboardInterrupt:
         pass

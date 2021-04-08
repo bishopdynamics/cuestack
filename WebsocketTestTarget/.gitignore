@@ -1,0 +1,7 @@
+venv/*
+__pycache__/*
+WebsocketTestTarget.build/*
+WebsocketTestTarget.dist/*
+WebsocketTestTarget.onefile-build/*
+WebsocketTestTarget.exe
+dist/*

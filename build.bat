@@ -3,21 +3,19 @@
 set CWD=%~dp0
 echo "current working directory: %CWD%"
 
-exit /B
+rmdir /S /Q "%CWD%\dist"
+mkdir "%CWD%\dist"
 
-rmdir /S /Q %CWD%\dist
-mkdir %CWD%\dist
-
-cd %CWD%\CueStack
+cd "%CWD%\CueStack"
 build
-move %CWD%\CueStack\dist\* %CWD%\dist\
-rmdir /S /Q %CWD%\CueStack\dist
-cd %CWD%
+move "%CWD%\CueStack\dist\*" %CWD%\dist\
+rmdir /S /Q "%CWD%\CueStack\dist"
+cd "%CWD%"
 
-cd %CWD%\CueStackClient
+cd "%CWD%\CueStackClient"
 build
-move %CWD%\CueStackClient\dist\CueStackClient.exe %CWD%\dist\
-rmdir /S /Q %CWD%\CueStackClient\dist
-cd %CWD%
+move "%CWD%\CueStackClient\dist\CueStackClient.exe" "%CWD%\dist\"
+rmdir /S /Q "%CWD%\CueStackClient\dist"
+cd "%CWD%"
 
 echo "done"

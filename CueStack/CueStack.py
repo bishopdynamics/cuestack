@@ -25,45 +25,22 @@ import argparse
 import pathlib
 import platform
 
-from multiprocessing import Process, Queue
-
 from CSLogger import get_logger
-from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
-from CSCommandTargets import CSTargetOBS, CSTargetGenericOSC, CSTargetGenericTCP, CSTargetGenericUDP, CSTargetGenericHTTP, CSTargetGenericWebsocket, CSTargetGenericMQTT
 from CSMessageProcessor import CSMessageProcessor
 
 
 class CueStackService:
     config = None  # parsed config lives here
-    trigger_sources = {}  # objects managing a connection to a trigger source live here
-    command_targets = {}  # holds the processes (multithreading) that handle sending command target messages
-    command_queues = {}  # holds the queues for pushing messages to the process which sends them
-    trigger_queue = None  # trigger sources place received messages in this queue, which the message processor then pulls from
-    target_map = {  # this maps command target types to the corresponding class
-        'obs-websocket': CSTargetOBS,
-        'osc-generic': CSTargetGenericOSC,
-        'tcp-generic': CSTargetGenericTCP,
-        'udp-generic': CSTargetGenericUDP,
-        'http-generic': CSTargetGenericHTTP,
-        'websocket-generic': CSTargetGenericWebsocket,
-        'mqtt-generic': CSTargetGenericMQTT,
-    }
-    trigger_map = {
-        'websocket': CSTriggerGenericWebsocket,
-        'http': CSTriggerGenericHTTP,
-        'mqtt': CSTriggerGenericMQTT,
-    }
 
     def __init__(self, args):
         logging.info('CueStack is starting...')
         self.args = args
-        path_file = pathlib.Path(__file__).parent.absolute()
-        path_cwd = pathlib.Path.cwd()
+        path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
+        path_cwd = pathlib.Path.cwd()  # this is the current working directory, not necessarily where .py is located
         path_base = path_cwd
         config_file = path_base.joinpath(self.args.config)
         logging.info('using config file: %s' % config_file)
         try:
-            self.trigger_queue = Queue()
             with open(config_file, 'r') as cf:
                 self.config = json.load(cf)
         except Exception as e:
@@ -72,9 +49,7 @@ class CueStackService:
         try:
             logging.info('setting up structures')
             self.loop = asyncio.new_event_loop()
-            self.msg_processor = CSMessageProcessor(self.config, self.trigger_sources, self.command_targets, self.command_queues)
-            self.setup_command_targets()
-            self.setup_trigger_sources()
+            self.msg_processor = CSMessageProcessor(self.config, self.loop)
 
         except Exception as ex:
             logging.error('exception while setting up structures: %s' % ex)
@@ -91,58 +66,6 @@ class CueStackService:
             logging.error('Unexpected Exception while setting up CueStack Server: %s', ex)
             self.stop(1)
 
-    def setup_command_targets(self):
-        # setup command targets based on config, populating command_targets
-        logging.info('setting up command targets')
-        for this_target in self.config['command_targets']:
-            try:
-                if not this_target['enabled']:
-                    logging.warning('ignoring disabled command target: %s' % this_target['name'])
-                else:
-                    logging.info('setting up command target: %s' % this_target['name'])
-                    if this_target['type'] in self.target_map:
-                        self.command_queues[this_target['name']] = Queue()
-                        this_config_obj = {
-                            'config': this_target['config'],  # config for this target, straight from config.json
-                            'name': 'ct:%s' % this_target['name'],  # this will be the name used in logging
-                            'queue': self.command_queues[this_target['name']],  # the queue for passing command messages to this target
-                        }
-                        self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
-                        self.command_targets[this_target['name']].start()
-                    else:
-                        raise Exception('command target %s unknown type: %s' % (this_target['name'], this_target['type']))
-            except Exception:
-                logging.exception('something went wrong while configuring one of the command targets')
-                raise Exception('failed to setup command targets')
-        logging.debug('succeeded in setting up command targets')
-
-    def setup_trigger_sources(self):
-        # setup trigger sources based on config, populating trigger_sources
-        logging.info('setting up trigger sources')
-        for this_source in self.config['trigger_sources']:
-            try:
-                if this_source['name'] == 'internal':
-                    raise Exception('trigger source name \'internal\' is reserved for internal use, please choose a different name for this trigger source')
-                if not this_source['enabled']:
-                    logging.warning('ignoring disabled trigger source: %s' % this_source['name'])
-                else:
-                    logging.info('setting up trigger source: %s' % this_source['name'])
-                    if this_source['type'] in self.trigger_map:
-                        this_config_obj = {
-                            'config': this_source['config'],
-                            'name': 'ts:%s' % this_source['name'],
-                            'queue': self.trigger_queue,
-                            'handler': self.msg_processor.handle,
-                            'loop': self.loop,
-                        }
-                        self.trigger_sources[this_source['name']] = self.trigger_map[this_source['type']](this_config_obj)
-                    else:
-                        raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_source['type']))
-            except Exception:
-                logging.exception('something went wrong while configuring one of the trigger sources')
-                raise Exception('failed to setup trigger sources')
-        logging.debug('succeeded in setting up trigger sources')
-
     def handle_signal(self, this_signal, this_frame=None):
         # handle sigint or sigterm and cleanup
         try:
@@ -155,21 +78,7 @@ class CueStackService:
 
     def stop(self, code=0):
         # shut down anything that needs to be
-        logging.info('shutting down trigger sources')
-        for this_source in self.trigger_sources:
-            try:
-                self.trigger_sources[this_source].stop()
-            except Exception:
-                pass
-        logging.info('shutting down command targets')
-        for this_target in self.command_targets:
-            try:
-                # self.command_targets[this_target].stop()
-                logging.debug('shutting down command target process: %s' % this_target)
-                self.command_targets[this_target].terminate()
-                self.command_targets[this_target].join()
-            except Exception:
-                pass
+        self.msg_processor.stop()
         try:
             self.loop.stop()
         except Exception:

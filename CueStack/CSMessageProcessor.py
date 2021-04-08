@@ -91,6 +91,7 @@ class CSMessageProcessor:
             return {'status': 'Unexpected Exception'}
 
     def handle_api_cuestack(self, trigger_message):
+        # triggering a cue or stack
         if 'stack' in trigger_message:
             logging.info('switching to cue stack: %s' % trigger_message['stack'])
             actual_stack = self.find_stack(trigger_message['stack'])
@@ -141,32 +142,47 @@ class CSMessageProcessor:
         return {'status': 'OK'}
 
     def handle_api_request(self, trigger_message):
-        # a data request yay
+        # data api requests
         try:
-            if trigger_message['request'] == 'cues':
+            request = trigger_message['request']
+            if request == 'cues':
                 cuelist = []
                 for cue in self.current_cue_stack['cues']:
                     cuelist.append(cue['name'])
                 response = {'status': 'OK', 'response': {'cues': cuelist}}
-            elif trigger_message['request'] == 'stacks':
+            elif request == 'stacks':
                 stacklist = []
                 for stack in self.config['stacks']:
                     stacklist.append(stack['name'])
                 response = {'status': 'OK', 'response': {'stacks': stacklist}}
-            elif trigger_message['request'] == 'currentStack':
+            elif request == 'currentStack':
                 response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
-            elif trigger_message['request'] == 'triggerSources':
+            elif request == 'triggerSources':
                 sourcelist = []
                 for src in self.trigger_sources:
                     sourcelist.append(src)
                 response = {'status': 'OK', 'response': {'triggerSources': sourcelist}}
-            elif trigger_message['request'] == 'commandTargets':
+            elif request == 'commandTargets':
                 targetlist = []
                 for target in self.command_targets:
                     targetlist.append(target)
                 response = {'status': 'OK', 'response': {'commandTargets': targetlist}}
+            elif request == 'addTarget':
+                try:
+                    self.setup_command_target(trigger_message['request_payload'])
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('addTarget failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'addTrigger':
+                try:
+                    self.setup_trigger_source(trigger_message['request_payload'])
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('addTrigger failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
             else:
-                response = {'status': 'Unknown request: %s' % trigger_message['request']}
+                response = {'status': 'Unknown request: %s' % request}
         except Exception as ex:
             msg = 'unexpected exception while handling a request %s' % ex
             logging.error(msg)
@@ -205,49 +221,55 @@ class CSMessageProcessor:
         logging.info('setting up command targets')
         for this_target in self.config['command_targets']:
             try:
-                if not this_target['enabled']:
-                    logging.warning('ignoring disabled command target: %s' % this_target['name'])
-                else:
-                    logging.info('setting up command target: %s' % this_target['name'])
-                    if this_target['type'] in self.target_map:
-                        self.command_queues[this_target['name']] = Queue()
-                        this_config_obj = {
-                            'config': this_target['config'],  # config for this target, straight from config.json
-                            'name': 'ct:%s' % this_target['name'],  # this will be the name used in logging
-                            'queue': self.command_queues[this_target['name']],  # the queue for passing command messages to this target
-                        }
-                        self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
-                        self.command_targets[this_target['name']].start()
-                    else:
-                        raise Exception('command target %s unknown type: %s' % (this_target['name'], this_target['type']))
+                self.setup_command_target(this_target)
             except Exception:
                 logging.exception('something went wrong while configuring one of the command targets')
                 raise Exception('failed to setup command targets')
         logging.debug('succeeded in setting up command targets')
+
+    def setup_command_target(self, this_target):
+        if not this_target['enabled']:
+            logging.warning('ignoring disabled command target: %s' % this_target['name'])
+        else:
+            logging.info('setting up command target: %s' % this_target['name'])
+            if this_target['type'] in self.target_map:
+                self.command_queues[this_target['name']] = Queue()
+                this_config_obj = {
+                    'config': this_target['config'],  # config for this target, straight from config.json
+                    'name': 'ct:%s' % this_target['name'],  # this will be the name used in logging
+                    'queue': self.command_queues[this_target['name']],  # the queue for passing command messages to this target
+                }
+                self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
+                self.command_targets[this_target['name']].start()
+            else:
+                raise Exception('command target %s unknown type: %s' % (this_target['name'], this_target['type']))
 
     def setup_trigger_sources(self):
         # setup trigger sources based on config, populating trigger_sources
         logging.info('setting up trigger sources')
         for this_source in self.config['trigger_sources']:
             try:
-                if this_source['name'] == 'internal':
-                    raise Exception('trigger source name \'internal\' is reserved for internal use, please choose a different name for this trigger source')
-                if not this_source['enabled']:
-                    logging.warning('ignoring disabled trigger source: %s' % this_source['name'])
-                else:
-                    logging.info('setting up trigger source: %s' % this_source['name'])
-                    if this_source['type'] in self.trigger_map:
-                        this_config_obj = {
-                            'config': this_source['config'],
-                            'name': 'ts:%s' % this_source['name'],
-                            'queue': self.trigger_queue,
-                            'handler': self.handle,
-                            'loop': self.loop,
-                        }
-                        self.trigger_sources[this_source['name']] = self.trigger_map[this_source['type']](this_config_obj)
-                    else:
-                        raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_source['type']))
+                self.setup_trigger_source(this_source)
             except Exception:
                 logging.exception('something went wrong while configuring one of the trigger sources')
                 raise Exception('failed to setup trigger sources')
         logging.debug('succeeded in setting up trigger sources')
+
+    def setup_trigger_source(self, this_source):
+        if this_source['name'] == 'internal':
+            raise Exception('trigger source name "internal" is reserved for internal use, please choose a different name for this trigger source')
+        if not this_source['enabled']:
+            logging.warning('ignoring disabled trigger source: %s' % this_source['name'])
+        else:
+            logging.info('setting up trigger source: %s' % this_source['name'])
+            if this_source['type'] in self.trigger_map:
+                this_config_obj = {
+                    'config': this_source['config'],
+                    'name': 'ts:%s' % this_source['name'],
+                    'queue': self.trigger_queue,
+                    'handler': self.handle,
+                    'loop': self.loop,
+                }
+                self.trigger_sources[this_source['name']] = self.trigger_map[this_source['type']](this_config_obj)
+            else:
+                raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_source['type']))

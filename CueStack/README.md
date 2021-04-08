@@ -45,7 +45,7 @@ External triggers will call cues by name, but what those cues actually DO is dep
 
 ## Quick Start
 If you are on Windows, you can get started pretty quickly
-* grab the prebuilt binaries here: [dist/](dist) and place them in a folder on your PC
+* grab the prebuilt binaries here: [dist/](../dist) and place them in a folder on your PC
 * grab `config-cuestack.json` and `config-voicemeeteragent.json` from here: [example-configs/](example-configs) and place them in the same folder
 * edit the `.json` files to suit your needs, Visual Studio Code is highly recommended
 * double-click on either `.exe` to launch it; to quit, just close the window

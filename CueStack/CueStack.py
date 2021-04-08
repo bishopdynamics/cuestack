@@ -46,7 +46,7 @@ class CueStackService:
                 config = json.load(cf)
         except Exception as e:
             logging.error('exception while parsing config file (%s): %s' % (config_file, e))
-            sys.exit(1)
+            self.stop()
         else:
             try:
                 logging.info('setting up structures')

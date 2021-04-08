@@ -70,7 +70,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
     handler_class = partial(SimpleHTTPRequestHandler,
-                            directory=path_file)
+                            directory=str(path_file))
 
     # ensure dual-stack is not disabled; ref #38907
     class DualStackServer(ThreadingHTTPServer):

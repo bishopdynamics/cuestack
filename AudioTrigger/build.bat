@@ -8,7 +8,7 @@ mkdir "%CWD%\dist"
 
 CALL npm install -g nexe
 CALL npm install
-nexe index.js -t x64-14.15.3 -r "public" -r "node_modules"
+CALL nexe index.js -t x64-14.15.3 -r "public" -r "node_modules"
 
 move AudioTrigger.exe .\dist\
 

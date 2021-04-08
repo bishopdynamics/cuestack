@@ -4,6 +4,7 @@
 # will respond OK regardless of message content
 # response includes received_timestamp
 
+import time
 import json
 import sys
 import asyncio
@@ -51,6 +52,7 @@ if __name__ == "__main__":
 
     try:
         asyncio.get_event_loop().run_until_complete(start_server)
+        asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
         asyncio.get_event_loop().run_forever()
     except KeyboardInterrupt:
         pass

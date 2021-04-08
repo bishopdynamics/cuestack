@@ -79,7 +79,6 @@ class CSMessageProcessor:
                             if cue_part['target'] in self.command_targets:
                                 timestamp = str(datetime.now())
                                 logging.debug('%s executing a part' % timestamp)
-                                # self.command_targets[cue_part['target']].send(cue_part['command'])
                                 self.command_queues[cue_part['target']].put(cue_part['command'])
                             else:
                                 logging.error('no enabled command target exists to handle cue target: %s' % cue_part['target'])
@@ -89,21 +88,36 @@ class CSMessageProcessor:
                     return {'status': 'Cue Not Found: %s' % cuename}
             if 'request' in trigger_message:
                 # a data request yay
-                if trigger_message['request'] == 'cues':
-                    cuelist = []
-                    for cue in self.current_cue_stack['cues']:
-                        cuelist.append(cue['name'])
-                    response = {'status': 'OK', 'response': {'cues': cuelist}}
-                    return response
-                if trigger_message['request'] == 'stacks':
-                    stacklist = []
-                    for stack in self.config['stacks']:
-                        stacklist.append(stack['name'])
-                    response = {'status': 'OK', 'response': {'stacks': stacklist}}
-                    return response
-                if trigger_message['request'] == 'currentStack':
-                    response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
-                    return response
+                try:
+                    if trigger_message['request'] == 'cues':
+                        cuelist = []
+                        for cue in self.current_cue_stack['cues']:
+                            cuelist.append(cue['name'])
+                        response = {'status': 'OK', 'response': {'cues': cuelist}}
+                    elif trigger_message['request'] == 'stacks':
+                        stacklist = []
+                        for stack in self.config['stacks']:
+                            stacklist.append(stack['name'])
+                        response = {'status': 'OK', 'response': {'stacks': stacklist}}
+                    elif trigger_message['request'] == 'currentStack':
+                        response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
+                    elif trigger_message['request'] == 'triggerSources':
+                        sourcelist = []
+                        for src in self.trigger_sources:
+                            sourcelist.append(src)
+                        response = {'status': 'OK', 'response': {'triggerSources': sourcelist}}
+                    elif trigger_message['request'] == 'commandTargets':
+                        targetlist = []
+                        for target in self.command_targets:
+                            targetlist.append(target)
+                        response = {'status': 'OK', 'response': {'commandTargets': targetlist}}
+                    else:
+                        response = {'status': 'Unknown request: %s' % trigger_message['request']}
+                except Exception as ex:
+                    msg = 'unexpected exception while handling a request %s' % ex
+                    logging.error(msg)
+                    response = {'status': msg}
+                return response
             return {'status': 'OK'}
         except Exception as e:
             logging.error('unexpected exception while parsing message: %s' % e)

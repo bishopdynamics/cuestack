@@ -42,11 +42,17 @@ Inspired by an old tool called Cue Composer, this project seeks to provide a mid
 The stack system is intended to allow you to build out multiple versions of the same cues, with the stack representing overall context. 
 External triggers will call cues by name, but what those cues actually DO is dependent on which stack is currently active. 
 
-As an example, imagine you are doing a live theatre performance in an outdoor venue, with some performances during daytime, and others at night. Your lighting cues will need to be different during the day, but much of the other elements may remain the same. 
-The entire performance is timecoded, with the sound board triggering other elements via OSC. You can build two cue stacks which represent "Daytime" and "Night" performances, and nothing needs to be changed in terms of what messages the sound board is sending.
+## Quick Start
+If you are on Windows, you can get started pretty quickly
+* grab the prebuilt binaries here: [dist/](dist) and place them in a folder on your PC
+* grab `config-cuestack.json` and `config-voicemeeteragent.json` from here: [example-configs/](example-configs) and place them in the same folder
+* edit the `.json` files to suit your needs, Visual Studio Code is highly recommended
+* double-click on either `.exe` to launch it; to quit, just close the window
 
-Another example, you are hosting a quiz show with four participants, on a web stream. You are streaming to Twitch via OBS Studio. You might have a trigger which calls to OBS in order to highlight the participant whos turn it is. You could prepare four cue stacks where that highlight becomes progressively more pronounced, and trigger them from a countdown timer.
- 
+Notes:
+* by default, CueStack will look for `config-cuestack.json`, and VoicemeeterAgent will look for `config-voicemeeteragent.json`
+* you can change this with the `-c` flag: `CueStack.exe -c myotherconfig.json`
+* you can also use `-m` flag to change how much info is printed (`prod` or `dev`): `CueStack.exe -m dev`
 
 
 ## Vocabulary

@@ -1,7 +1,9 @@
 
 @echo off
-set CWD = %~dp0
+set CWD=%~dp0
 echo "current working directory: %CWD%"
+
+exit /B
 
 rmdir /S /Q %CWD%\dist
 mkdir %CWD%\dist

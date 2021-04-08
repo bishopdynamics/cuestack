@@ -80,7 +80,10 @@ class CueStackService:
 
     def stop(self, code=0):
         # shut down anything that needs to be
-        self.msg_processor.stop()
+        try:
+            self.msg_processor.stop()
+        except Exception:
+            pass
         try:
             self.loop.stop()
         except Exception:

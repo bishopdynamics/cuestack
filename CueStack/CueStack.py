@@ -25,6 +25,9 @@ import argparse
 import pathlib
 import platform
 
+if platform.system() == 'Windows':
+    import win32api
+
 from CSLogger import get_logger
 from CSMessageProcessor import CSMessageProcessor
 
@@ -92,8 +95,15 @@ class CueStackService:
         sys.exit(code)
 
 
+def handle_windows_signal(a, b=None):
+    logging.info('caught windows idea of a signal, you probably need to press ctrl+c again')
+    sys.exit()
+
+
 if __name__ == "__main__":
     # this is the main entry point for CueStack
+    if platform.system() == 'Windows':
+        win32api.SetConsoleCtrlHandler(handle_windows_signal, True)
     ARG_PARSER = argparse.ArgumentParser(description='CueStack Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ARG_PARSER.add_argument('-m', dest='mode', action='store',
                             type=str, default='prod', choices=['prod', 'dev'],

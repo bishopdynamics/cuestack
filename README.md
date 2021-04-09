@@ -10,8 +10,9 @@ License: [Proprietary](LICENSE.txt)
 * CueStack - see [CueStack/README.md](CueStack/README.md)
 * VoicemeeterAgent - also see [CueStack/README.md](CueStack/README.md) (near the bottom)
 * ViscaAgent - also see [CueStack/README.md](CueStack/README.md) (near the bottom)
-* web_buttons_trigger - a very simple webui providing buttons to control CueStack
+* CueStackClient - a simple webui to configure and control CueStack
 * AudioTrigger - trigger source for CueStack, for calling cues based on audio input level threshold. see [Readme.md](audio_trigger/README.md)
+* WebsocketTestTarget - something to send commands to for testing
 
 ## Prebuilt Binaries for Windows
 

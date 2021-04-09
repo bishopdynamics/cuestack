@@ -251,6 +251,62 @@ class CSMessageProcessor:
                 except Exception as ex:
                     logging.error('setDefaultStack failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
+            elif request == 'setEnabled':
+                try:
+                    if 'enabled' not in payload:
+                        raise Exception('missing key: enabled')
+                    enabled = payload['enabled']
+                    if 'cue' in payload:
+                        cuename = payload['cue']['name']
+                        stackname = payload['cue']['stack']
+                        if self.find_stack(stackname) is not None:
+                            if self.find_cue(self.find_stack(stackname), cuename) is not None:
+                                logging.info('setting cue: %s in stack: %s, enabled: %s' % (cuename, stackname, enabled))
+                                self.find_cue(self.find_stack(stackname), cuename)['enabled'] = enabled
+                            else:
+                                raise Exception('unable to find cue: %s in stack: %s' % (cuename, stackname))
+                        else:
+                            raise Exception('unable to find stack: %s' % stackname)
+                    # TODO parts do not have a name, so we must rely on array indexing to address them. can we rely on parts staying in order? part order does not matter otherwise
+                    # elif 'part' in payload:
+                    #     something()
+                    elif 'target' in payload:
+                        targetname = payload['target']['name']
+                        if self.find_target(targetname) is not None:
+                            if self.find_target(targetname)['enabled'] == enabled:
+                                logging.info('command target: %s enabled is already %s' % (targetname, enabled))
+                            else:
+                                logging.info('setting command target: %s, enabled: %s' % (targetname, enabled))
+                                self.find_target(targetname)['enabled'] = enabled
+                                if enabled:
+                                    self.setup_command_target(self.find_target(targetname))
+                                else:
+                                    self.command_targets[targetname].terminate()
+                                    self.command_targets[targetname].join()
+                                    self.command_targets.pop(targetname)
+                        else:
+                            raise Exception('command target named: %s does not exist' % targetname)
+                    elif 'trigger' in payload:
+                        triggername = payload['trigger']['name']
+                        if self.find_trigger(triggername) is not None:
+                            if self.find_trigger(triggername)['enabled'] == enabled:
+                                logging.info('trigger source: %s enabled is already %s' % (triggername, enabled))
+                            else:
+                                logging.info('setting trigger source: %s, enabled: %s' % (triggername, enabled))
+                                self.find_trigger(triggername)['enabled'] = enabled
+                                if enabled:
+                                    # TODO not implemented
+                                    logging.debug('here is where i would call create_trigger_source but it wont work right now')
+                                else:
+                                    logging.debug('here is where i would stop a trigger source and remove it from self.trigger_sources, but it wont work right now')
+                        else:
+                            raise Exception('trigger source named: %s does not exist' % triggername)
+                    else:
+                        raise Exception('bad setEnabled request')
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('setEnabled failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
             else:
                 response = {'status': 'Unknown request: %s' % request}
         except Exception as ex:
@@ -258,6 +314,22 @@ class CSMessageProcessor:
             logging.error(msg)
             response = {'status': msg}
         return response
+
+    def find_trigger(self, triggername):
+        found_trigger = None
+        for trigger in self.config['trigger_sources']:
+            if trigger['name'] == triggername:
+                found_trigger = trigger
+                break
+        return found_trigger
+
+    def find_target(self, targetname):
+        found_target = None
+        for target in self.config['command_targets']:
+            if target['name'] == targetname:
+                found_target = target
+                break
+        return found_target
 
     def find_stack(self, stackname):
         found_stack = None

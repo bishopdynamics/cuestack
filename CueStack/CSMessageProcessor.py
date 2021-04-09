@@ -51,7 +51,7 @@ class CSMessageProcessor:
         self.loop = loop
         self.log_level = log_level
         self.trigger_queue = Queue()
-        self.current_cue_stack = self.find_stack(config['default_stack'])
+        self.current_cue_stack = self.find_stack(config['default_stack'])  # holds actual stack object
         self.setup_command_targets()
         self.setup_trigger_sources()
 
@@ -104,48 +104,56 @@ class CSMessageProcessor:
                 logging.warning('not changing stacks')
                 return {'status': 'Stack Not Found: %s' % trigger_message['stack']}
         if 'cue' in trigger_message:
-            cuename = trigger_message['cue']
-            logging.debug('received trigger for cue: %s' % cuename)
-            actual_cue = self.find_cue(self.current_cue_stack, cuename)
+            logging.debug('received trigger for cue: %s' % trigger_message['cue'])
+            actual_cue = self.find_cue(self.current_cue_stack, trigger_message['cue'])
             if actual_cue is not None:
                 if 'enabled' in actual_cue:
                     if not actual_cue['enabled']:
-                        logging.warning('silently ignoring disabled cue %s' % cuename)
+                        logging.warning('silently ignoring disabled cue %s' % trigger_message['cue'])
                         return
                 num_parts = 0
                 total_parts = len(actual_cue['parts'])
-                logging.info('running cue: %s' % cuename)
+                logging.info('running cue: %s' % trigger_message['cue'])
                 for cue_part in actual_cue['parts']:
                     num_parts += 1
                     if 'enabled' in cue_part:
                         if not cue_part['enabled']:
-                            logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (cuename, num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                            logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (trigger_message['cue'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
                             continue
-                    logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (cuename, num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-                    if cue_part['target'] == 'internal':
-                        # an internal cue part can be used to call another trigger
-                        timestamp = str(datetime.now())
-                        logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
-                        tempstring = json.dumps(cue_part['command'])
-                        self.handle(tempstring)
-                        continue
-                    else:
-                        if cue_part['target'] in self.command_targets:
-                            timestamp = str(datetime.now())
-                            logging.debug('%s executing a part' % timestamp)
-                            self.command_queues[cue_part['target']].put(cue_part['command'])
-                        else:
-                            logging.error('no enabled command target exists to handle cue target: %s' % cue_part['target'])
-                            continue
+                    logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (trigger_message['cue'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                    try:
+                        self.run_cue_command(cue_part)
+                    except Exception as ex:
+                        logging.error(ex)
+                        pass
             else:
-                logging.error('unable to find a cue named %s in current stack' % cuename)
-                return {'status': 'Cue Not Found: %s' % cuename}
+                logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
+                return {'status': 'Cue Not Found: %s' % trigger_message['cue']}
         return {'status': 'OK'}
+
+    def run_cue_command(self, cue_part):
+        if cue_part['target'] == 'internal':
+            # an internal cue part can be used to call another trigger
+            timestamp = str(datetime.now())
+            logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
+            tempstring = json.dumps(cue_part['command'])
+            self.handle(tempstring)
+        else:
+            if cue_part['target'] in self.command_targets:
+                timestamp = str(datetime.now())
+                logging.debug('%s executing a part' % timestamp)
+                self.command_queues[cue_part['target']].put(cue_part['command'])
+            else:
+                raise Exception('no enabled command target exists to handle cue target: %s' % cue_part['target'])
 
     def handle_api_request(self, trigger_message):
         # data api requests
         try:
             request = trigger_message['request']
+            if 'request_payload' in trigger_message:
+                payload = trigger_message['request_payload']
+            else:
+                payload = {}
             if request == 'cues':
                 cuelist = []
                 for cue in self.current_cue_stack['cues']:
@@ -170,17 +178,78 @@ class CSMessageProcessor:
                 response = {'status': 'OK', 'response': {'commandTargets': targetlist}}
             elif request == 'addTarget':
                 try:
-                    self.setup_command_target(trigger_message['request_payload'])
+                    logging.info('adding new command target from api->request->addTarget: %s' % payload)
+                    self.setup_command_target(payload)
                     response = {'status': 'OK'}
                 except Exception as ex:
                     logging.error('addTarget failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
             elif request == 'addTrigger':
                 try:
-                    self.setup_trigger_source(trigger_message['request_payload'])
-                    response = {'status': 'OK'}
+                    # TODO disabled because it does not work with our current trigger source pattern
+                    logging.info('adding new trigger source from api->request->addTrigger: %s' % payload)
+                    raise Exception('api->request->addTrigger not implemented')
+                    # self.setup_trigger_source(payload)
+                    # response = {'status': 'OK'}
                 except Exception as ex:
                     logging.error('addTrigger failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'command':
+                # a command coming directly through the trigger source api, useful for testing
+                try:
+                    logging.info('running anonymous command from api->request->command: %s' % payload)
+                    self.run_cue_command(payload)
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('command failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'addCue':
+                try:
+                    stackname = payload['stack']
+                    if self.find_stack(stackname) is None:
+                        self.config['stacks'].append(
+                            {
+                                'name': stackname,
+                                'cues': []
+                            }
+                        )
+                    else:
+                        if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
+                            raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
+                    logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
+                    stack_obj = self.find_stack(stackname)
+                    stack_obj['cues'].append(payload['cue'])
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('addCue failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'addStack':
+                try:
+                    stackname = payload['stack']
+                    if self.find_stack(stackname) is None:
+                        logging.info('Adding a new empty stack: %s' % stackname)
+                        self.config['stacks'].append(
+                            {
+                                'name': stackname,
+                                'cues': []
+                            }
+                        )
+                    else:
+                        raise Exception('Stack named %s already exists' % stackname)
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('addStack failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'setDefaultStack':
+                try:
+                    if self.find_stack(payload) is not None:
+                        logging.info('setting default_stack to: %s' % payload)
+                        self.config['default_stack'] = payload
+                    else:
+                        raise Exception('Stack named %s does not exist' % payload)
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('setDefaultStack failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
             else:
                 response = {'status': 'Unknown request: %s' % request}

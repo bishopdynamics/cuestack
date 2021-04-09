@@ -1,5 +1,5 @@
 0.1.1
-* extended data api with addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled
+* extended data api with addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig
 * enforce python 3.8+ 
 * prebuilt binaries for windows report version with commit id they were built from
 

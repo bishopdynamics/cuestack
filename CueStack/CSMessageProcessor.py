@@ -17,6 +17,7 @@
 
 
 import json
+import copy
 import logging
 from datetime import datetime
 from multiprocessing import Process, Queue
@@ -74,11 +75,12 @@ class CSMessageProcessor:
     def handle(self, _msg):
         # you can have cut, stack, and request all in the same message
         try:
-            logging.debug('received message: %s' % _msg)
             try:
                 trigger_message = json.loads(_msg, object_pairs_hook=self.dict_raise_on_duplicates)
+                logging.debug('decoded message: \n%s' % json.dumps(trigger_message, indent=4, sort_keys=True))
             except Exception as ex:
                 logging.error('JSON Decode Failure: %s' % ex)
+                logging.debug('the received message: \n%s' % _msg)
                 return {'status': 'JSON Decode Failure: %s' % ex}
             response = {'status': 'invalid request'}  # should get overwritten if this is a valid request
             if 'cue' in trigger_message or 'stack' in trigger_message:
@@ -164,6 +166,8 @@ class CSMessageProcessor:
                 for stack in self.config['stacks']:
                     stacklist.append(stack['name'])
                 response = {'status': 'OK', 'response': {'stacks': stacklist}}
+            elif request == 'getConfig':
+                response = {'status': 'OK', 'response': {'config': self.config}}
             elif request == 'currentStack':
                 response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
             elif request == 'triggerSources':
@@ -197,7 +201,13 @@ class CSMessageProcessor:
             elif request == 'addCue':
                 try:
                     stackname = payload['stack']
+                    if 'copyFrom' in payload:
+                        if self.find_stack(payload['copyFrom']['stack']) is None:
+                            raise Exception('cannot find stack to copy from: %s' % payload['copyFrom']['stack'])
+                        if self.find_cue(self.find_stack(payload['copyFrom']['stack']), payload['copyFrom']['cue']) is None:
+                            raise Exception('cannot find cue to copy from: %s in stack: %s' % (payload['copyFrom']['cue'], payload['copyFrom']['stack']))
                     if self.find_stack(stackname) is None:
+                        logging.info('addCue is implicitly adding an empty stack: %s' % stackname)
                         self.config['stacks'].append(
                             {
                                 'name': stackname,
@@ -207,10 +217,20 @@ class CSMessageProcessor:
                     else:
                         if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
                             raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
-                    logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
-                    stack_obj = self.find_stack(stackname)
-                    stack_obj['cues'].append(payload['cue'])
-                    response = {'status': 'OK'}
+                    if 'copyFrom' in payload:
+                        logging.info('adding new cue %s to stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
+                        from_stack = self.find_stack(payload['copyFrom']['stack'])
+                        from_cue = self.find_cue(from_stack, payload['copyFrom']['cue'])
+                        stack_obj = self.find_stack(stackname)
+                        new_cue = copy.deepcopy(from_cue)
+                        new_cue['name'] = payload['cue']['name']
+                        stack_obj['cues'].append(new_cue)
+                        response = {'status': 'OK'}
+                    else:
+                        logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
+                        stack_obj = self.find_stack(stackname)
+                        stack_obj['cues'].append(payload['cue'])
+                        response = {'status': 'OK'}
                 except Exception as ex:
                     logging.error('addCue failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
@@ -218,13 +238,23 @@ class CSMessageProcessor:
                 try:
                     stackname = payload['stack']
                     if self.find_stack(stackname) is None:
-                        logging.info('Adding a new empty stack: %s' % stackname)
-                        self.config['stacks'].append(
-                            {
-                                'name': stackname,
-                                'cues': []
-                            }
-                        )
+                        if 'copyFrom' in payload:
+                            if self.find_stack(payload['copyFrom']) is not None:
+                                logging.info('Adding a new stack: %s, copying from: %s' % (stackname, payload['copyFrom']))
+                                copy_from = self.find_stack(payload['copyFrom'])
+                                newstack = copy.deepcopy(copy_from)
+                                newstack['name'] = stackname
+                                self.config['stacks'].append(newstack)
+                            else:
+                                raise Exception('unable to find copyFrom stack: %s' % payload['copyFrom'])
+                        else:
+                            logging.info('Adding a new empty stack: %s' % stackname)
+                            self.config['stacks'].append(
+                                {
+                                    'name': stackname,
+                                    'cues': []
+                                }
+                            )
                     else:
                         raise Exception('Stack named %s already exists' % stackname)
                     response = {'status': 'OK'}

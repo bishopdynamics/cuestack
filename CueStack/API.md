@@ -45,9 +45,11 @@ There are some options which require additional data be given in `request_payloa
 * `addTrigger`
   - expects `"request_payload": {}`, where `{}` is a trigger exactly as in config.json
 * `addCue`
-  - expects `"request_payload": {"stack": "stackname", "cue": "cuename"}`, where `cuename` is the name of the cue to create, and `stackname` is the name of the stack to add it to. If needed, the stack will be created.
+  - expects `"request_payload": {"stack": "stackname", "cue": {}}`, where `{}` is a cue exactly as in config.json to create, and `stackname` is the name of the stack to add it to. If needed, the stack will be created.
+  - you can also copy from an existing cue: `"request_payload": {"stack": "stackname", "copyFrom": {"stack": "otherstackname", "cue": "othercuename"}, "cue": {}}`
 * `addStack`
   - expects `"request_payload": {"stack": "stackname"}`, where `stackname` is the name of the stack to create
+  - you can also copy from an existing stack: `"request_payload": {"stack": "stackname", "copyFrom": "otherstackname"}`
 * `setDefaultStack`
   - expects `"request_payload": "stackname"`, where `stackname` is the name of a stack to set as default; will fail if it does not exist
 * `setEnabled`

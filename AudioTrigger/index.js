@@ -124,12 +124,12 @@ function getVersion() {
         if (err) {
             console.log('AudioTrigger development is starting...');
         } else {
-            this_version = data;
+            this_version = data.replace(/\r?\n|\r/g, " ");
             fs.readFile('BUILD', 'utf8', (err, data) => {
                 if (err) {
                     console.log('AudioTrigger development is starting...');
                 } else {
-                    this_commit = data;
+                    this_commit = data.replace(/\r?\n|\r/g, " ");
                     console.log('AudioTrigger ' + this_version + '-' + this_commit + ' is starting...');
                 }
             });

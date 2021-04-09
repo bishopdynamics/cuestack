@@ -26,9 +26,9 @@ from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CS
 
 class VoicemeeterAgentMessageProcessor:
     # The Voicemeeter Agent has its own message processor
-    trigger_sources = {}  # objects managing a connection to a trigger source live here
-    trigger_queue = None  # trigger sources place received messages in this queue, which the message processor then pulls from
-    trigger_map = {
+    command_sources = {}  # objects managing a connection to a command source live here
+    command_queue = None  # command sources place received messages in this queue, which the message processor then pulls from
+    command_map = {
         'websocket': CSTriggerGenericWebsocket,
         'http': CSTriggerGenericHTTP,
         'mqtt': CSTriggerGenericMQTT,
@@ -39,9 +39,9 @@ class VoicemeeterAgentMessageProcessor:
         self.config = config
         self.loop = loop
         self.log_level = log_level
-        self.trigger_queue = Queue()
-        self.setup_trigger_sources()
+        self.command_queue = Queue()
         try:
+            self.setup_command_sources()
             logging.info('making sure voicemeeter %s is open' % self.config['voicemeeter_kind'])
             voicemeeter.launch(self.config['voicemeeter_kind'])
         except Exception as ex:
@@ -49,10 +49,10 @@ class VoicemeeterAgentMessageProcessor:
             raise ex
 
     def stop(self):
-        logging.info('shutting down trigger sources')
-        for this_source in self.trigger_sources:
+        logging.info('shutting down command sources')
+        for this_source in self.command_sources:
             try:
-                self.trigger_sources[this_source].stop()
+                self.command_sources[this_source].stop()
             except Exception:
                 pass
 
@@ -60,15 +60,15 @@ class VoicemeeterAgentMessageProcessor:
         try:
             # logging.debug('received message: %s' % _msg)
             try:
-                trigger_message = json.loads(_msg, object_pairs_hook=self.dict_raise_on_duplicates)
+                command_message = json.loads(_msg, object_pairs_hook=self.dict_raise_on_duplicates)
             except Exception as ex:
                 logging.error('JSON Decode Failure: %s' % ex)
                 return {'status': 'JSON Decode Failure: %s' % ex}
-            if 'apply' in trigger_message:
-                logging.info('handling apply command: %s' % trigger_message['apply'])
+            if 'apply' in command_message:
+                logging.info('handling apply command: %s' % command_message['apply'])
                 try:
                     with voicemeeter.remote(self.config['voicemeeter_kind']) as vmr:
-                        vmr.apply(trigger_message['apply'])
+                        vmr.apply(command_message['apply'])
                 except Exception as ex:
                     logging.error('exception while handling apply command: %s' % ex)
                     return {'status': 'Exception while handling apply command: %s' % ex}
@@ -90,32 +90,32 @@ class VoicemeeterAgentMessageProcessor:
                 d[k] = v
         return d
 
-    def setup_trigger_sources(self):
-        # setup trigger sources based on config, populating trigger_sources
-        logging.info('setting up trigger sources')
-        for this_source in self.config['trigger_sources']:
+    def setup_command_sources(self):
+        # setup command sources based on config, populating command_sources
+        logging.info('setting up command sources')
+        for this_source in self.config['command_sources']:
             try:
-                self.setup_trigger_source(this_source)
+                self.setup_command_source(this_source)
             except Exception:
-                logging.exception('something went wrong while configuring one of the trigger sources')
-                raise Exception('failed to setup trigger sources')
-        logging.debug('succeeded in setting up trigger sources')
+                logging.exception('something went wrong while configuring one of the command sources')
+                raise Exception('failed to setup command sources')
+        logging.debug('succeeded in setting up command sources')
 
-    def setup_trigger_source(self, this_source):
+    def setup_command_source(self, this_source):
         if this_source['name'] == 'internal':
-            raise Exception('trigger source name "internal" is reserved for internal use, please choose a different name for this trigger source')
+            raise Exception('command source name "internal" is reserved for internal use, please choose a different name for this command source')
         if not this_source['enabled']:
-            logging.warning('ignoring disabled trigger source: %s' % this_source['name'])
+            logging.warning('ignoring disabled command source: %s' % this_source['name'])
         else:
-            logging.info('setting up trigger source: %s' % this_source['name'])
-            if this_source['type'] in self.trigger_map:
+            logging.info('setting up command source: %s' % this_source['name'])
+            if this_source['type'] in self.command_map:
                 this_config_obj = {
                     'config': this_source['config'],
                     'name': 'ts:%s' % this_source['name'],
-                    'queue': self.trigger_queue,
+                    'queue': self.command_queue,
                     'handler': self.handle,
                     'loop': self.loop,
                 }
-                self.trigger_sources[this_source['name']] = self.trigger_map[this_source['type']](this_config_obj)
+                self.command_sources[this_source['name']] = self.command_map[this_source['type']](this_config_obj)
             else:
-                raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_source['type']))
+                raise Exception('command source %s unknown type: %s' % (this_source['name'], this_source['type']))

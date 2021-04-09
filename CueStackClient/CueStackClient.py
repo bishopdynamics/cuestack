@@ -18,6 +18,7 @@
 # pylint: disable=C0111,W0703,C0301,R0912,R0915,R0904,C0302,R1702,W0511
 
 
+import os
 import sys
 import contextlib
 import socket
@@ -35,6 +36,23 @@ def _get_best_family(*address):
     )
     family, atype, proto, canonname, sockaddr = next(iter(infos))
     return family, sockaddr
+
+
+def get_version(path_base):
+    try:
+        _version_string = 'development'
+        v_file = pathlib.Path(path_base).joinpath('VERSION')
+        b_file = pathlib.Path(path_base).joinpath('BUILD')
+        if os.path.exists(v_file) and os.path.exists(b_file):
+            with open(v_file, 'r') as file:
+                _version = file.read().replace('\n', '')
+            with open(b_file, 'r') as file:
+                _build = file.read().replace('\n', '')
+            _version_string = '%s-%s' % (_version, _build)
+    except:
+        _version_string = 'development'
+        pass
+    return _version_string
 
 
 def test(HandlerClass=BaseHTTPRequestHandler,
@@ -80,7 +98,9 @@ if __name__ == '__main__':
                 self.socket.setsockopt(
                     socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
             return super().server_bind()
-
+    path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
+    version = get_version(path_file)
+    print('Starting CueStackClient %s ' % version)
     test(
         HandlerClass=handler_class,
         ServerClass=DualStackServer,

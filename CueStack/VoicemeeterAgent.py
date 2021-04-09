@@ -31,19 +31,19 @@ if platform.system() == 'Windows':
     from VoicemeeterAgentMessageProcessor import VoicemeeterAgentMessageProcessor
 
 from CSLogger import get_logger
-# from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
+from CSCommon import get_version
 
 
 class VoicemeeterAgent:
     config = None  # parsed config lives here
 
     def __init__(self, args, log_level):
-        logging.info('Voicemeeter Agent is starting...')
-        self.args = args
-        path_file = pathlib.Path(__file__).parent.absolute()
-        path_cwd = pathlib.Path.cwd()
+        path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
+        path_cwd = pathlib.Path.cwd()  # this is the current working directory, not necessarily where .py is located
+        version = get_version(path_file)
+        logging.info('VoicemeeterAgent %s is starting...' % version)
         path_base = path_cwd
-        config_file = path_base.joinpath(self.args.config)
+        config_file = path_base.joinpath(args.config)
         logging.info('using config file: %s' % config_file)
         try:
             with open(config_file, 'r') as cf:

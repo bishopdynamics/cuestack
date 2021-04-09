@@ -30,14 +30,16 @@ if platform.system() == 'Windows':
 
 from CSLogger import get_logger
 from CSMessageProcessor import CSMessageProcessor
+from CSCommon import get_version
 
 
 class CueStackService:
 
     def __init__(self, args, log_level):
-        logging.info('CueStack is starting...')
         path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
         path_cwd = pathlib.Path.cwd()  # this is the current working directory, not necessarily where .py is located
+        version = get_version(path_file)
+        logging.info('CueStack %s is starting...' % version)
         path_base = path_cwd
         config_file = path_base.joinpath(args.config)
         logging.info('using config file: %s' % config_file)

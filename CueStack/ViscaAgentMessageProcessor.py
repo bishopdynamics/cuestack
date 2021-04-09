@@ -18,8 +18,10 @@
 
 import json
 import logging
+from multiprocessing import Queue
 
 from visca import ViscaControl
+from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
 
 # self.v = ViscaControl(portname='/dev/serial/by-id/usb-Twiga_TWIGACam-if03-port0')
 # self.v.cmd_cam_zoom_tele_speed(self.CAM, 7)
@@ -29,10 +31,22 @@ from visca import ViscaControl
 
 class ViscaAgentMessageProcessor:
     # The Visca Agent has its own message processor
-    def __init__(self, config):
+    command_sources = {}  # objects managing a connection to a command source live here
+    command_queue = None  # command sources place received messages in this queue, which the message processor then pulls from
+    command_map = {
+        'websocket': CSTriggerGenericWebsocket,
+        'http': CSTriggerGenericHTTP,
+        'mqtt': CSTriggerGenericMQTT,
+    }
+
+    def __init__(self, config, log_level, loop):
         logging.debug('Initializing a ViscaAgentMessageProcessor')
         self.config = config
+        self.loop = loop
+        self.log_level = log_level
+        self.command_queue = Queue()
         try:
+            self.setup_command_sources()
             if 'device_id' in self.config:
                 self.device_id = self.config['device_id']
             else:
@@ -47,24 +61,32 @@ class ViscaAgentMessageProcessor:
             logging.error('exception while setting up ViscaAgentMessageProcessor: %s' % ex)
             raise ex
 
+    def stop(self):
+        logging.info('shutting down command sources')
+        for this_source in self.command_sources:
+            try:
+                self.command_sources[this_source].stop()
+            except Exception:
+                pass
+
     def handle(self, _msg):
         try:
             # logging.debug('received message: %s' % _msg)
             try:
-                trigger_message = json.loads(_msg, object_pairs_hook=self.dict_raise_on_duplicates)
+                command_message = json.loads(_msg, object_pairs_hook=self.dict_raise_on_duplicates)
             except Exception as ex:
                 logging.error('JSON Decode Failure: %s' % ex)
                 return {'status': 'JSON Decode Failure: %s' % ex}
-            if 'visca' in trigger_message:
-                if trigger_message['visca']['args']['device_id'] == self.device_id:
+            if 'visca' in command_message:
+                if command_message['visca']['args']['device_id'] == self.device_id:
                     try:
-                        self.send_command(trigger_message['visca'])
+                        self.send_command(command_message['visca'])
                     except Exception as ex:
                         logging.error('exception while handling visca command: %s' % ex)
                         return {'status': 'Exception while handling visca command: %s' % ex}
                     return {'status': 'OK'}
                 else:
-                    logging.debug('ignoring message for other device id: %s' % trigger_message['visca']['args']['device_id'])
+                    logging.debug('ignoring message for other device id: %s' % command_message['visca']['args']['device_id'])
             else:
                 return {'status': 'Error: missing a supported command key'}
         except Exception as e:
@@ -86,3 +108,33 @@ class ViscaAgentMessageProcessor:
         logging.info('sending visca command: %s' % command)
         method_to_call = getattr(self.v, command['request'])
         method_to_call(**command['args'])
+
+    def setup_command_sources(self):
+        # setup command sources based on config, populating command_sources
+        logging.info('setting up command sources')
+        for this_source in self.config['command_sources']:
+            try:
+                self.setup_command_source(this_source)
+            except Exception:
+                logging.exception('something went wrong while configuring one of the command sources')
+                raise Exception('failed to setup command sources')
+        logging.debug('succeeded in setting up command sources')
+
+    def setup_command_source(self, this_source):
+        if this_source['name'] == 'internal':
+            raise Exception('command source name "internal" is reserved for internal use, please choose a different name for this command source')
+        if not this_source['enabled']:
+            logging.warning('ignoring disabled command source: %s' % this_source['name'])
+        else:
+            logging.info('setting up command source: %s' % this_source['name'])
+            if this_source['type'] in self.command_map:
+                this_config_obj = {
+                    'config': this_source['config'],
+                    'name': 'ts:%s' % this_source['name'],
+                    'queue': self.command_queue,
+                    'handler': self.handle,
+                    'loop': self.loop,
+                }
+                self.command_sources[this_source['name']] = self.command_map[this_source['type']](this_config_obj)
+            else:
+                raise Exception('command source %s unknown type: %s' % (this_source['name'], this_source['type']))

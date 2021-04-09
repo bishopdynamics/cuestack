@@ -7,6 +7,7 @@ echo current working directory: %CWD_TOP%
 set FINAL_DIST=%CWD_TOP%\dist\latest
 
 git rev-parse --short HEAD > BUILD
+powershell -command "\"$(Get-Content BUILD)\" > BUILD"
 set /p CUR_COMMIT=<BUILD
 echo Creating build %CUR_COMMIT% at %FINAL_DIST%
 

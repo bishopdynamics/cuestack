@@ -61,9 +61,9 @@ Notes:
 ## API
 CueStack provides a full API through trigger sources, check out [the documentation](API.md)
 
+## Configuration
+CueStack is configured through a `.json` file, by default `config-cuestack.json`, check out [the documentation](Config.md)
+
 ## Conceptual Diagram
 
 ![Diagram](docs/mindmap.png)
-
-## Configuration
-CueStack is configured through a `.json` file, by default `config-cuestack.json`, check out [the documentation](Config.md)

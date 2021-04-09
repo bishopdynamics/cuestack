@@ -1,5 +1,5 @@
-# Voicemeeter Agent
-The Voicemeeter Agent is designed to allow you to remotely control a Voicemeeter instance on a remote machine, using websocket messages.
+# VoicemeeterAgent
+VoicemeeterAgent is designed to allow you to remotely control a Voicemeeter instance on a remote machine, using websocket messages.
 You can use the generic websocket command target to send messages to this agent. The agent supports control messages using the same input modules as CueStack, so it also supports HTTP Get and MQTT messages for control.
 
 You can send messages that will use the `apply` method as documented [here](https://github.com/chvolkmann/voicemeeter-remote-python).

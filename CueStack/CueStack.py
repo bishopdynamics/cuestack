@@ -68,7 +68,8 @@ class CueStackService:
                 pass
             except Exception as ex:
                 logging.error('Unexpected Exception while setting up CueStack Server: %s', ex)
-            self.stop(1)
+                self.stop(1)
+            self.stop()
 
     def handle_signal(self, this_signal, this_frame=None):
         # handle sigint or sigterm and cleanup

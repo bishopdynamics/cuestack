@@ -1,5 +1,5 @@
-# Visca Agent
-The Visca Agent is designed to allow you to remotely control a camera compatible with the Sony Visca protocol, using websocket messages.
+# ViscaAgent
+ViscaAgent is designed to allow you to remotely control a camera compatible with the Sony Visca protocol, using websocket messages.
 You can use the generic websocket command target to send messages to this agent. 
 The agent supports control messages using the same input modules as CueStack, so it also supports HTTP Get and MQTT messages for control.
 

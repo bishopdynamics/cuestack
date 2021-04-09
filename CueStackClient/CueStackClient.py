@@ -81,7 +81,7 @@ def test(HandlerClass=BaseHTTPRequestHandler,
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('port', action='store',
+    parser.add_argument('-p', dest='port', action='store',
                         default=8000, type=int,
                         nargs='?',
                         help='Specify alternate port [default: 8000]')

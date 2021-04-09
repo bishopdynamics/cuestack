@@ -40,7 +40,7 @@ if __name__ == "__main__":
         win32api.SetConsoleCtrlHandler(handle_windows_signal, True)
     ARG_PARSER = argparse.ArgumentParser(description='Test Websocket Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ARG_PARSER.add_argument('-p', dest='port', action='store',
-                            type=int, default=8113,
+                            type=int, default=8001,
                             help='port on which to run websocket server')
     ARGS = ARG_PARSER.parse_args()
 

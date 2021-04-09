@@ -95,7 +95,7 @@ function RequestStacks() {
 }
 
 function RequestCurrentStack() {
-    req = {"request": "currentStack"};
+    req = {"request": "getCurrentStack"};
     SendMessage(req);
 }
 

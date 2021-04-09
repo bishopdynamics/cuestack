@@ -152,10 +152,10 @@ class CSMessageProcessor:
         # data api requests
         try:
             request = trigger_message['request']
+            payload = {}
             if 'request_payload' in trigger_message:
                 payload = trigger_message['request_payload']
-            else:
-                payload = {}
+
             if request == 'getCues':
                 cuelist = []
                 for cue in self.current_cue_stack['cues']:
@@ -169,7 +169,7 @@ class CSMessageProcessor:
             elif request == 'getConfig':
                 logging.debug('handling request getConfig')
                 response = {'status': 'OK', 'response': {'config': self.config}}
-            elif request == 'currentStack':
+            elif request == 'getCurrentStack':
                 logging.debug('handling request currentStack')
                 response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
             elif request == 'triggerSources':

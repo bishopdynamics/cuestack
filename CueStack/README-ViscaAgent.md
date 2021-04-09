@@ -3,6 +3,8 @@ ViscaAgent is designed to allow you to remotely control a camera compatible with
 You can use the generic websocket command target to send messages to this agent. 
 The agent supports control messages using the same input modules as CueStack, so it also supports HTTP Get and MQTT messages for control.
 
+ViscaAgent is intended to run raspbian on a RaspberryPi with direct serial connection to the camera.
+
 ## Flags
 * `-c` - set the config file location, default is `config-viscaagent.json`
 * `-m` - set the runmode, which changes how much info is printed, options are `dev` and `prod` (default)

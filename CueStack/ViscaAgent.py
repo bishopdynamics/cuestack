@@ -97,6 +97,7 @@ class ViscaAgent:
 
 if __name__ == "__main__":
     # this is the main entry point for Visca Agent
+    assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
     ARG_PARSER = argparse.ArgumentParser(description='Visca Agent', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ARG_PARSER.add_argument('-m', dest='mode', action='store',
                             type=str, default='prod', choices=['prod', 'dev'],
@@ -111,5 +112,4 @@ if __name__ == "__main__":
         LOG_LEVEL = logging.INFO
     logger = get_logger(name=__name__,
                         level=LOG_LEVEL)
-    assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
     VA = ViscaAgent(ARGS, LOG_LEVEL)

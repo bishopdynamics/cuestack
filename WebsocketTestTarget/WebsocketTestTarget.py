@@ -4,10 +4,10 @@
 # will respond OK regardless of message content
 # response includes received_timestamp
 
-import time
 import json
 import sys
 import asyncio
+import pathlib
 import websockets
 import argparse
 import platform
@@ -33,9 +33,29 @@ def handle_windows_signal(a, b=None):
     sys.exit()
 
 
+def get_version(path_base):
+    try:
+        _version_string = 'development'
+        v_file = pathlib.Path(path_base).joinpath('VERSION')
+        b_file = pathlib.Path(path_base).joinpath('BUILD')
+        if os.path.exists(v_file) and os.path.exists(b_file):
+            with open(v_file, 'r') as file:
+                _version = file.read().replace('\n', '')
+            with open(b_file, 'r') as file:
+                _build = file.read().replace('\n', '')
+            _version_string = '%s-%s' % (_version, _build)
+    except:
+        _version_string = 'development'
+        pass
+    return _version_string
+
+
 if __name__ == "__main__":
     # this is the main entry point
-    print('Websocket Test Server')
+    assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
+    path_file = pathlib.Path(__file__).parent.absolute()  # this is where this .py file is located
+    version = get_version(path_file)
+    print('Starting CueStackClient %s ' % version)
     if platform.system() == 'Windows':
         win32api.SetConsoleCtrlHandler(handle_windows_signal, True)
     ARG_PARSER = argparse.ArgumentParser(description='Test Websocket Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)

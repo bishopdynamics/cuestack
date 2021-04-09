@@ -79,6 +79,7 @@ def test(HandlerClass=BaseHTTPRequestHandler,
 
 
 if __name__ == '__main__':
+    assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', dest='port', action='store',

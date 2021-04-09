@@ -107,6 +107,7 @@ def handle_windows_signal(a, b=None):
 
 if __name__ == "__main__":
     # this is the main entry point for CueStack
+    assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
     if platform.system() == 'Windows':
         win32api.SetConsoleCtrlHandler(handle_windows_signal, True)
     ARG_PARSER = argparse.ArgumentParser(description='CueStack Server', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -123,5 +124,4 @@ if __name__ == "__main__":
         LOG_LEVEL = logging.INFO
     logger = get_logger(name=__name__,
                         level=LOG_LEVEL)
-    assert sys.version_info >= (3, 8), "Script requires Python 3.8+."
     CS = CueStackService(ARGS, LOG_LEVEL)

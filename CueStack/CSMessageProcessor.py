@@ -32,13 +32,13 @@ class CSMessageProcessor:
     command_queues = {}  # holds the queues for pushing messages to the process which sends them
     trigger_queue = None  # trigger sources place received messages in this queue, which the message processor then pulls from
     target_map = {  # this maps command target types to the corresponding class
-        'obs-websocket': CSTargetOBS,
-        'osc-generic': CSTargetGenericOSC,
-        'tcp-generic': CSTargetGenericTCP,
-        'udp-generic': CSTargetGenericUDP,
-        'http-generic': CSTargetGenericHTTP,
-        'websocket-generic': CSTargetGenericWebsocket,
-        'mqtt-generic': CSTargetGenericMQTT,
+        'obs_websocket': CSTargetOBS,
+        'osc_generic': CSTargetGenericOSC,
+        'tcp_generic': CSTargetGenericTCP,
+        'udp_generic': CSTargetGenericUDP,
+        'http_generic': CSTargetGenericHTTP,
+        'websocket_generic': CSTargetGenericWebsocket,
+        'mqtt_generic': CSTargetGenericMQTT,
     }
     trigger_map = {
         'websocket': CSTriggerGenericWebsocket,
@@ -201,13 +201,28 @@ class CSMessageProcessor:
                     logging.error('addTrigger failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
             elif request == 'addCue':
+                # add a new cue to a stack, or copy a cue, or replace a cue
+                # replace effectively allows you to update a cue.
+                # we do not want to edit cue parts thru api, it should be edited client-side and sent as an entire cue update
                 try:
                     stackname = payload['stack']
+                    want_replace = False
                     if 'copyFrom' in payload:
                         if self.find_stack(payload['copyFrom']['stack']) is None:
                             raise Exception('cannot find stack to copy from: %s' % payload['copyFrom']['stack'])
                         if self.find_cue(self.find_stack(payload['copyFrom']['stack']), payload['copyFrom']['cue']) is None:
                             raise Exception('cannot find cue to copy from: %s in stack: %s' % (payload['copyFrom']['cue'], payload['copyFrom']['stack']))
+                    if 'replace' in payload:
+                        if payload['replace']:
+                            want_replace = True
+                            if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is None:
+                                raise Exception('cannot find the cue trying to replace: stack: %s, cue: %s' % (stackname, payload['cue']['name']))
+                        else:
+                            if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
+                                raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
+                    else:
+                        if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
+                            raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
                     if self.find_stack(stackname) is None:
                         logging.info('addCue is implicitly adding an empty stack: %s' % stackname)
                         self.config['stacks'].append(
@@ -216,22 +231,28 @@ class CSMessageProcessor:
                                 'cues': []
                             }
                         )
-                    else:
-                        if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
-                            raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
+                    stack_obj = self.find_stack(stackname)
                     if 'copyFrom' in payload:
-                        logging.info('adding new cue %s to stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
                         from_stack = self.find_stack(payload['copyFrom']['stack'])
                         from_cue = self.find_cue(from_stack, payload['copyFrom']['cue'])
-                        stack_obj = self.find_stack(stackname)
                         new_cue = copy.deepcopy(from_cue)
-                        new_cue['name'] = payload['cue']['name']
-                        stack_obj['cues'].append(new_cue)
+                        if want_replace:
+                            logging.info('replacing cue %s in stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
+                            existing_cue = self.find_cue(stack_obj, payload['cue']['name'])
+                            existing_cue['parts'] = new_cue['parts']
+                        else:
+                            logging.info('adding new cue %s to stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
+                            new_cue['name'] = payload['cue']['name']
+                            stack_obj['cues'].append(new_cue)
                         response = {'status': 'OK'}
                     else:
-                        logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
-                        stack_obj = self.find_stack(stackname)
-                        stack_obj['cues'].append(payload['cue'])
+                        if want_replace:
+                            logging.info('replacing cue %s in stack %s' % (payload['cue']['name'], stackname))
+                            existing_cue = self.find_cue(stack_obj, payload['cue']['name'])
+                            existing_cue['parts'] = payload['cue']['parts']
+                        else:
+                            logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
+                            stack_obj['cues'].append(payload['cue'])
                         response = {'status': 'OK'}
                 except Exception as ex:
                     logging.error('addCue failed: %s' % ex)

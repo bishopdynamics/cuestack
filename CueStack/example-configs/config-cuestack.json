@@ -180,7 +180,7 @@
     {
       "enabled": true,
       "name": "http-example",
-      "type": "http-generic",
+      "type": "http_generic",
       "config": {
         "host": "localhost",
         "port": 9090
@@ -189,7 +189,7 @@
     {
       "enabled": true,
       "name": "websocket-example",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "localhost",
         "port": 8113
@@ -198,7 +198,7 @@
     {
       "enabled": true,
       "name": "mqtt-example",
-      "type": "mqtt-generic",
+      "type": "mqtt_generic",
       "config": {
         "host": "james-broker",
         "port": 1883

@@ -103,7 +103,7 @@
     {
       "enabled": true,
       "name": "websocket1",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "localhost",
         "port": 8001
@@ -112,7 +112,7 @@
     {
       "enabled": true,
       "name": "websocket2",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "localhost",
         "port": 8002
@@ -121,7 +121,7 @@
     {
       "enabled": true,
       "name": "websocket3",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "localhost",
         "port": 8003
@@ -130,7 +130,7 @@
     {
       "enabled": true,
       "name": "websocket4",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "localhost",
         "port": 8004
@@ -139,7 +139,7 @@
     {
       "enabled": false,
       "name": "websocket5",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "192.168.1.74",
         "port": 8005
@@ -148,7 +148,7 @@
     {
       "enabled": false,
       "name": "websocket6",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "192.168.1.74",
         "port": 8006
@@ -157,7 +157,7 @@
     {
       "enabled": false,
       "name": "websocket7",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "192.168.1.74",
         "port": 8007
@@ -166,7 +166,7 @@
     {
       "enabled": false,
       "name": "websocket8",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "192.168.1.74",
         "port": 8008

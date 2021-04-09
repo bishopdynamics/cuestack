@@ -41,7 +41,7 @@ Configuration is stored in a single file: `config-cuestack.json`. It contains fo
     {
       "enabled": false,
       "name": "tcp-example",
-      "type": "tcp-generic",
+      "type": "tcp_generic",
       "config": {
         "host": "localhost",
         "port": 8103
@@ -161,7 +161,7 @@ CueStack can only send messages to OBS Studio, it cannot fetch information; resp
     {
       "enabled": false,
       "name": "obs",
-      "type": "obs-websocket",
+      "type": "obs_websocket",
       "config": {
         "host": "localhost",
         "port": 4444,
@@ -195,7 +195,7 @@ As a handy shortcut, you can omit the `value` key, and a value of `1` will be se
     {
       "enabled": true,
       "name": "qlcplus",
-      "type": "osc-generic",
+      "type": "osc_generic",
       "config": {
         "host": "127.0.0.1",
         "port": 7703
@@ -230,7 +230,7 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
     {
       "enabled": false,
       "name": "udp-example",
-      "type": "udp-generic",
+      "type": "udp_generic",
       "config": {
         "host": "localhost",
         "port": 9191
@@ -265,7 +265,7 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
     {
       "enabled": false,
       "name": "tcp-example",
-      "type": "tcp-generic",
+      "type": "tcp_generic",
       "config": {
         "host": "localhost",
         "port": 8103
@@ -305,7 +305,7 @@ You can also send a message as a dict. The path and params will be converted int
     {
       "enabled": false,
       "name": "http-example",
-      "type": "http-generic",
+      "type": "http_generic",
       "config": {
         "host": "localhost",
         "port": 9090
@@ -342,7 +342,7 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
     {
       "enabled": false,
       "name": "websocket-example",
-      "type": "websocket-generic",
+      "type": "websocket_generic",
       "config": {
         "host": "localhost",
         "port": 8113
@@ -382,7 +382,7 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
     {
       "enabled": false,
       "name": "mqtt-example",
-      "type": "mqtt-generic",
+      "type": "mqtt_generic",
       "config": {
         "host": "192.168.1.202",
         "port": 1883

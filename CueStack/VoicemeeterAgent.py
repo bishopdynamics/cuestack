@@ -31,14 +31,13 @@ if platform.system() == 'Windows':
     from VoicemeeterAgentMessageProcessor import VoicemeeterAgentMessageProcessor
 
 from CSLogger import get_logger
-from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
+# from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
 
 
 class VoicemeeterAgent:
     config = None  # parsed config lives here
-    command_sources = {}  # objects managing a connection to a command source live here
 
-    def __init__(self, args):
+    def __init__(self, args, log_level):
         logging.info('Voicemeeter Agent is starting...')
         self.args = args
         path_file = pathlib.Path(__file__).parent.absolute()
@@ -55,9 +54,7 @@ class VoicemeeterAgent:
         try:
             logging.info('setting up structures')
             self.loop = asyncio.new_event_loop()
-            self.msg_processor = VoicemeeterAgentMessageProcessor(self.config)
-            self.setup_command_sources()
-
+            self.msg_processor = VoicemeeterAgentMessageProcessor(self.config, log_level, self.loop)
         except Exception as ex:
             logging.error('exception while setting up structures: %s' % ex)
             self.stop(1)
@@ -73,32 +70,6 @@ class VoicemeeterAgent:
             logging.error('Unexpected Exception while setting up Voicemeeter Agent: %s', ex)
             self.stop(1)
 
-    def setup_command_sources(self):
-        # setup command sources based on config, populating command_sources
-        logging.info('setting up command sources')
-        for this_source in self.config['command_sources']:
-            try:
-                if this_source['name'] == 'internal':
-                    raise Exception('command source name \'internal\' is reserved for internal use, please choose a different name for this command source')
-                if not this_source['enabled']:
-                    logging.warning('ignoring disabled command source: %s' % this_source['name'])
-                else:
-                    logging.info('setting up command source: %s' % this_source['name'])
-                    this_type = this_source['type']
-                    this_config = this_source['config']
-                    if this_type == 'websocket':
-                        self.command_sources[this_source['name']] = CSTriggerGenericWebsocket(this_config, self.msg_processor.handle, self.loop)
-                    elif this_type == 'http':
-                        self.command_sources[this_source['name']] = CSTriggerGenericHTTP(this_config, self.msg_processor.handle, self.loop)
-                    elif this_type == 'mqtt':
-                        self.command_sources[this_source['name']] = CSTriggerGenericMQTT(this_config, self.msg_processor.handle, self.loop)
-                    else:
-                        raise Exception('command source %s unknown type: %s' % (this_source['name'], this_type))
-            except Exception:
-                logging.exception('something went wrong while configuring one of the command sources')
-                raise Exception('failed to setup command sources')
-        logging.debug('succeeded in setting up command sources')
-
     def handle_signal(self, this_signal, this_frame=None):
         # handle sigint or sigterm and cleanup
         try:
@@ -111,12 +82,10 @@ class VoicemeeterAgent:
 
     def stop(self, code=0):
         # shut down anything that needs to be
-        logging.info('shutting down command sources')
-        for this_source in self.command_sources:
-            try:
-                self.command_sources[this_source].stop()
-            except Exception:
-                pass
+        try:
+            self.msg_processor.stop()
+        except Exception:
+            pass
         try:
             self.loop.stop()
         except Exception:
@@ -158,4 +127,4 @@ if __name__ == "__main__":
     if platform.system() != 'Windows':
         logging.error('This utility only works on Windows, same as Voicemeeter')
         sys.exit()
-    VMA = VoicemeeterAgent(ARGS)
+    VMA = VoicemeeterAgent(ARGS, LOG_LEVEL)

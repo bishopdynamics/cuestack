@@ -5,6 +5,12 @@ You can use the generic websocket command target to send messages to this agent.
 You can send messages that will use the `apply` method as documented [here](https://github.com/chvolkmann/voicemeeter-remote-python).
 You may notice that API supports other methods, but we have chosen to only use `apply` as it covers everything in one call.
 
+## Flags
+* `-c` - set the config file location, default is `config-voicemeeteragent.json`
+* `-m` - set the runmode, which changes how much info is printed, options are `dev` and `prod` (default)
+
+## Config
+
 Voicemeeter Agent has its own config file, which is pretty straightforward:
 ```json
 {
@@ -40,7 +46,8 @@ Voicemeeter Agent has its own config file, which is pretty straightforward:
 }
 ```
 
-And a cue part looks like this:
+## Cue
+And a cue part in CueStack looks like this:
 ```json
             {
               "target": "voicemeeter",
@@ -50,7 +57,7 @@ And a cue part looks like this:
             }
 ```
 
-You can also send a message as a dict, to avoid having to escape quotes with a slash. The dict will be converted into a json-encoded string before sending. As you can see in the below example. more complex control messages are much easier when you dont have to mind your quotes!:
+You can also send a message as a dict, to avoid having to escape quotes with a slash. The dict will be converted into a json-encoded string before sending. As you can see in the below example, more complex control messages are much easier when you dont have to mind your quotes!:
 
 ```json
             {

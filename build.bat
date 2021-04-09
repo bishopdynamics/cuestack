@@ -40,5 +40,5 @@ move "%CWD_TOP%\WebsocketTestTarget\dist\WebsocketTestTarget.exe" "%FINAL_DIST%\
 rmdir /S /Q "%CWD_TOP%\WebsocketTestTarget\dist"
 cd "%CWD_TOP%"
 
-echo
+echo.
 echo Finished building all binaries for Windows

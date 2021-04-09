@@ -1,6 +1,6 @@
 @echo off
 set CWD=%~dp0
-echo
+echo.
 echo Building WebsocketTestTarget.exe
 echo current working directory: %CWD%
 

@@ -22,7 +22,7 @@
         },
         {
           "name": "scene1_inactive",
-          "enabled": true,
+          "enabled": false,
           "parts": [
             {
               "target": "obs",

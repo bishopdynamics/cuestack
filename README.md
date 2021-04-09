@@ -18,7 +18,9 @@ License: [Proprietary](LICENSE.txt)
 
 We provide prebuilt binaries for Windows here: [dist](dist). 
 
-For CueStack, ViscaAgent, and VoicemeeterAgent, you will need a config file, see [Quick Start](CueStack/README.md#quick-start) or start with an example from here: [CueStack/example-configs](CueStack/example-configs)
+For CueStack, and VoicemeeterAgent, you will need a config file, see [Quick Start](CueStack/README.md#quick-start) or start with an example from here: [CueStack/example-configs](CueStack/example-configs)
+
+There are no prebuilt ViscaAgent binaries for Windows, as it is not supported on Windows.
 
 You may need to install [Visual C++ Redist 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145), but this is probably only needed for older versions of Windows.
 

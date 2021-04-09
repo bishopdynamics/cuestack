@@ -46,6 +46,7 @@ class CSTriggerGenericWebsocket:
     inbound_worker = None
     queue_ws_inbound = None
     queue_ws_outbound = None
+    webocket_log_level = logging.INFO  # very rarely actually want to see DEBUG level on these
 
     def __init__(self, config_obj):
         self.config = config_obj['config']
@@ -60,6 +61,8 @@ class CSTriggerGenericWebsocket:
         self.queue_ws_inbound = CSSafeQueue(loop=self.loop)
         self.queue_ws_outbound = CSSafeQueue(loop=self.loop)
         # TODO dont know why the linter hates _websocket_handler right now, but it works just fine
+        logging.getLogger('websockets.server').setLevel(self.webocket_log_level)
+        logging.getLogger('websockets.protocol').setLevel(self.webocket_log_level)
         _ws_instance = websockets.serve(self._websocket_handler, host=self.host, port=self.port, loop=self.loop)
         self.loop.run_until_complete(_ws_instance)
         logging.debug('Starting worker thread to process inbound websocket message queue')
@@ -121,8 +124,8 @@ class CSTriggerGenericWebsocket:
                             await _this_client.send(message)
                         except Exception as exa:
                             _bad_clients.add(_this_client)
-                            logging.debug('removing client that failed to send')
-                            logging.debug('exception was: %s', exa)
+                            # logging.debug('removing client that failed to send')
+                            # logging.debug('exception was: %s', exa)
                     for _this_client in _bad_clients:
                         try:
                             self.clients.remove(_this_client)

@@ -85,12 +85,12 @@ function UpdateCurrentStack(data) {
 }
 
 function RequestCues() {
-    req = {"request": "cues"};
+    req = {"request": "getCues"};
     SendMessage(req);
 }
 
 function RequestStacks() {
-    req = {"request": "stacks"};
+    req = {"request": "getStacks"};
     SendMessage(req);
 }
 

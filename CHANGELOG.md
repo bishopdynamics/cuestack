@@ -1,7 +1,9 @@
 0.1.1
-* extended data api with addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig
+* extended and tweaked data api:
+  - renamed: cues -> getCues, stacks -> getStacks
+  - Added: addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig
 * enforce python 3.8+ 
-* prebuilt binaries for windows report version with commit id they were built from
+* all prebuilt binaries for windows report version with commit id they were built from
 
 0.1.0
 * started version numbers and changelog (everything prior is retro)

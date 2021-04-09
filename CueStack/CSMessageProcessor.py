@@ -112,7 +112,7 @@ class CSMessageProcessor:
                 if 'enabled' in actual_cue:
                     if not actual_cue['enabled']:
                         logging.warning('silently ignoring disabled cue %s' % trigger_message['cue'])
-                        return
+                        return {'status': 'OK'}
                 num_parts = 0
                 total_parts = len(actual_cue['parts'])
                 logging.info('running cue: %s' % trigger_message['cue'])
@@ -156,19 +156,21 @@ class CSMessageProcessor:
                 payload = trigger_message['request_payload']
             else:
                 payload = {}
-            if request == 'cues':
+            if request == 'getCues':
                 cuelist = []
                 for cue in self.current_cue_stack['cues']:
                     cuelist.append(cue['name'])
                 response = {'status': 'OK', 'response': {'cues': cuelist}}
-            elif request == 'stacks':
+            elif request == 'getStacks':
                 stacklist = []
                 for stack in self.config['stacks']:
                     stacklist.append(stack['name'])
                 response = {'status': 'OK', 'response': {'stacks': stacklist}}
             elif request == 'getConfig':
+                logging.debug('handling request getConfig')
                 response = {'status': 'OK', 'response': {'config': self.config}}
             elif request == 'currentStack':
+                logging.debug('handling request currentStack')
                 response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
             elif request == 'triggerSources':
                 sourcelist = []

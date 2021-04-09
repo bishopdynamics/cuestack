@@ -194,15 +194,6 @@ class CSMessageProcessor:
                 except Exception as ex:
                     logging.error('addTrigger failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
-            elif request == 'command':
-                # a command coming directly through the trigger source api, useful for testing
-                try:
-                    logging.info('running anonymous command from api->request->command: %s' % payload)
-                    self.run_cue_command(payload)
-                    response = {'status': 'OK'}
-                except Exception as ex:
-                    logging.error('command failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
             elif request == 'addCue':
                 try:
                     stackname = payload['stack']
@@ -309,7 +300,7 @@ class CSMessageProcessor:
                         else:
                             raise Exception('command target named: %s does not exist' % targetname)
                     elif 'trigger' in payload:
-                        # TODO disabled because it does not work with our current trigger source pattern
+                        # TODO not implemented because it does not work with our current trigger source pattern
                         triggername = payload['trigger']['name']
                         if self.find_trigger(triggername) is not None:
                             if self.find_trigger(triggername)['enabled'] == enabled:
@@ -329,6 +320,15 @@ class CSMessageProcessor:
                     response = {'status': 'OK'}
                 except Exception as ex:
                     logging.error('setEnabled failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'command':
+                # a command coming directly through the trigger source api, useful for testing
+                try:
+                    logging.info('running anonymous command from api->request->command: %s' % payload)
+                    self.run_cue_command(payload)
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('command failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
             else:
                 response = {'status': 'Unknown request: %s' % request}

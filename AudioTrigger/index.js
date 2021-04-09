@@ -3,6 +3,7 @@ const express = require('express');
 const socketIo = require('socket.io');
 const WebSocket = require('ws');
 const { send } = require('process');
+const fs = require('fs');
 const ReconnectingWebSocket = require('reconnecting-websocket')
 
 
@@ -49,19 +50,12 @@ app.use(express.static('./public'));
 
 sources = {}
 
-
 // this tracks how many milliseconds since the indicated source went quiet, aka dropped below the threshold for activation/expansion
 state_tracker_quiet = {};
 
 // track current state of source, so we dont have to keep sending signals all the time flooding the ws connection
 state_tracker_state = {};
 
-io.on('connection', (socket) => {
-    socket.on('audioInput', (body) => {
-        setValues({ 'volume': parseInt(body.volume), 'id': body.id, 'scene': body.scene, 'limit': parseInt(body.limit)})
-        //console.log({ 'volume': parseInt(body.volume), 'id': body.id, 'scene': body.scene, 'limit': parseInt(body.limit)})
-    });
-});
 
 function setValues(val) {
     sources[val.id] = val;
@@ -121,6 +115,38 @@ function changeScene() {
         }
     }
 }
+
+function getVersion() {
+    // try to build a version string from VERSION and BUILD files, falling back on "development" if not found
+    let this_version = null
+    let this_commit = null
+    fs.readFile('VERSION', 'utf8', (err, data) => {
+        if (err) {
+            console.log('AudioTrigger development is starting...');
+        } else {
+            this_version = data;
+            fs.readFile('BUILD', 'utf8', (err, data) => {
+                if (err) {
+                    console.log('AudioTrigger development is starting...');
+                } else {
+                    this_commit = data;
+                    console.log('AudioTrigger ' + this_version + '-' + this_commit + ' is starting...');
+                }
+            });
+        }
+    });
+}
+
+/* This is where execution begins */
+
+getVersion();
+
+io.on('connection', (socket) => {
+    socket.on('audioInput', (body) => {
+        setValues({ 'volume': parseInt(body.volume), 'id': body.id, 'scene': body.scene, 'limit': parseInt(body.limit)})
+        //console.log({ 'volume': parseInt(body.volume), 'id': body.id, 'scene': body.scene, 'limit': parseInt(body.limit)})
+    });
+});
 
 setInterval(() => {
     try {

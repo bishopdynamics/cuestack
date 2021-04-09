@@ -267,9 +267,31 @@ class CSMessageProcessor:
                                 raise Exception('unable to find cue: %s in stack: %s' % (cuename, stackname))
                         else:
                             raise Exception('unable to find stack: %s' % stackname)
-                    # TODO parts do not have a name, so we must rely on array indexing to address them. can we rely on parts staying in order? part order does not matter otherwise
-                    # elif 'part' in payload:
-                    #     something()
+                    elif 'part' in payload:
+                        # TODO parts do not have a name, so we must rely on array indexing to address them.
+                        #  can we rely on parts staying in order? part order does not matter otherwise
+                        stackname = payload['part']['stack']
+                        cuename = payload['part']['cue']
+                        partno = payload['part']['part']
+                        if self.find_stack(stackname) is not None:
+                            if self.find_cue(self.find_stack(stackname), cuename) is not None:
+                                cue = self.find_cue(self.find_stack(stackname), cuename)
+                                if 1 <= partno < len(cue['parts']) + 1:
+                                    if 'enabled' in cue['parts'][partno - 1]:
+                                        if cue['parts'][partno - 1]['enabled'] == enabled:
+                                            logging.info('stack: %s, cue: %s, part: %s is already enabled: %s' % (stackname, cuename, partno, enabled))
+                                        else:
+                                            logging.info('setting stack: %s, cue: %s, part: %s, enabled: %s' % (stackname, cuename, partno, enabled))
+                                            cue['parts'][partno - 1]['enabled'] = enabled
+                                    else:
+                                        logging.info('setting stack: %s, cue: %s, part: %s, enabled: %s' % (stackname, cuename, partno, enabled))
+                                        cue['parts'][partno - 1]['enabled'] = enabled
+                                else:
+                                    raise Exception('invalid part number: stack: %s, cue: %s, part: %s' % (stackname, cuename, partno))
+                            else:
+                                raise Exception('unable to find cue: %s in stack: %s' % (cuename, stackname))
+                        else:
+                            raise Exception('unable to find stack: %s' % stackname)
                     elif 'target' in payload:
                         targetname = payload['target']['name']
                         if self.find_target(targetname) is not None:
@@ -287,6 +309,7 @@ class CSMessageProcessor:
                         else:
                             raise Exception('command target named: %s does not exist' % targetname)
                     elif 'trigger' in payload:
+                        # TODO disabled because it does not work with our current trigger source pattern
                         triggername = payload['trigger']['name']
                         if self.find_trigger(triggername) is not None:
                             if self.find_trigger(triggername)['enabled'] == enabled:

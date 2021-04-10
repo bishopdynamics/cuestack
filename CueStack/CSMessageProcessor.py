@@ -257,6 +257,25 @@ class CSMessageProcessor:
                 except Exception as ex:
                     logging.error('addCue failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
+            elif request == 'deleteCue':
+                try:
+                    if self.find_stack(payload['stack']) is not None:
+                        if self.find_cue(self.find_stack(payload['stack']), payload['cue']) is not None:
+                            stack = self.find_stack(payload['stack'])
+                            cue_index = self.find_cue_index(stack, payload['cue'])
+                            if cue_index is not None:
+                                logging.info('handling deleteCue for stack: %s, cue: %s' % (payload['stack'], payload['cue']))
+                                del stack['cues'][cue_index]
+                            else:
+                                Exception('deleteCue failed to find index of cue in list')
+                        else:
+                            raise Exception('unable to find cue to delete: stack: %s, cue: %s' % (payload['stack'], payload['cue']))
+                    else:
+                        raise Exception('unable to find find stack trying to delete cue from: stack: %s' % payload['stack'])
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('deleteCue failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
             elif request == 'addStack':
                 try:
                     stackname = payload['stack']
@@ -283,6 +302,40 @@ class CSMessageProcessor:
                     response = {'status': 'OK'}
                 except Exception as ex:
                     logging.error('addStack failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'deleteStack':
+                try:
+                    if self.current_cue_stack['name'] == payload['stack']:
+                        raise Exception('Cannot delete the currently active stack: %s' % payload['stack'])
+                    if self.find_stack(payload['stack']) is not None:
+                        logging.info('handling deleteStack for stack: %s' % payload['stack'])
+                        stack_index = self.find_stack_index(payload['stack'])
+                        if stack_index is not None:
+                            del self.config['stacks'][stack_index]
+                        else:
+                            raise Exception('deleteStack failed to find index of stack in list')
+                    else:
+                        raise Exception('unable to delete stack, cannot find it: %s' % payload['stack'])
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('deleteStack failed: %s' % ex)
+                    response = {'status': 'Exception: %s' % ex}
+            elif request == 'renameStack':
+                try:
+                    if self.current_cue_stack['name'] == payload['stack']:
+                        raise Exception('Cannot delete the currently active stack: %s' % payload['stack'])
+                    if self.find_stack(payload['stack']) is not None:
+                        if self.find_stack(payload['new_name']) is None:
+                            logging.info('handling renameStack for stack: %s to: %s' % (payload['stack'], payload['new_name']))
+                            stack = self.find_stack(payload['stack'])
+                            stack['name'] = payload['new_name']
+                        else:
+                            raise Exception('cannot rename because stack: %s already exists' % payload['new_name'])
+                    else:
+                        raise Exception('unable to rename stack, cannot find it: %s' % payload['stack'])
+                    response = {'status': 'OK'}
+                except Exception as ex:
+                    logging.error('renameStack failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex}
             elif request == 'setDefaultStack':
                 try:
@@ -385,11 +438,31 @@ class CSMessageProcessor:
                     response = {'status': 'Exception: %s' % ex}
             else:
                 response = {'status': 'Unknown request: %s' % request}
+        except KeyError as ex:
+            msg = 'KeyError while processing request: %s' % ex
+            logging.error(msg)
+            response = {'status': msg}
         except Exception as ex:
             msg = 'unexpected exception while handling a request %s' % ex
             logging.error(msg)
             response = {'status': msg}
         return response
+
+    def find_stack_index(self, stackname):
+        found_index = None
+        for i in range(0, len(self.config['stacks'])):
+            if self.config['stacks'][i]['name'] == stackname:
+                found_index = i
+                break
+        return found_index
+
+    def find_cue_index(self, stack, cuename):
+        found_index = None
+        for i in range(0, len(stack['cues'])):
+            if stack['cues'][i]['name'] == cuename:
+                found_index = i
+                break
+        return found_index
 
     def find_trigger(self, triggername):
         found_trigger = None

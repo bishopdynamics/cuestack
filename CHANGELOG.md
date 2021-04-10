@@ -1,7 +1,7 @@
 0.1.1
 * extend and reorg data api:
   - renamed: cues -> getCues, stacks -> getStacks, currentStack -> getCurrentStack
-  - Added: addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig
+  - Added: addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig, deleteStack, deleteCue, renameStack
 * enforce python 3.8+ 
 * all prebuilt binaries for windows report version with commit id they were built from
 * added CueStackClient templates.js

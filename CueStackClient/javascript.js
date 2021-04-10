@@ -15,7 +15,7 @@ WS_OPTIONS = {
 TABS_LIST = ["tester", "managestacks", "editcues", "edittargets", "edittriggers"]
 
 function UpdateWSStatus(message){
-    console.log('ws status: ' + message);
+    // console.log('ws status: ' + message);
     let thing = document.querySelector('#websocket-status');
     thing.innerHTML = JSON.stringify(message, null, 4);
 }
@@ -122,7 +122,7 @@ function SendMessage(message) {
     let msg = JSON.stringify(message);
     let client = new WebSocket("ws://" + WEBSOCKET_HOST + ":" + WEBSOCKET_PORT)
     client.onopen = function(event){
-        console.log('sending message: ' + msg)
+        // console.log('sending message: ' + msg)
         client.send(msg);
         setTimeout(function(){
             client.close()
@@ -139,7 +139,6 @@ function SendMessage(message) {
     }
     client.onerror = function(event) {
         UpdateWSStatus(event.message);
-        CloseWebsocket(this);
     }
 }
 
@@ -150,7 +149,6 @@ function GetStatus() {
 }
 
 function ShowTab(tabname) {
-    
     document.getElementById("tab-" + tabname).style.display = "block";
 }
 
@@ -161,7 +159,6 @@ function HideAllTabs() {
 }
 
 function ClickTab(tabname) {
-    console.log('showing tab: ' + tabname);
     HideAllTabs();
     ShowTab(tabname);
 }
@@ -176,7 +173,7 @@ function RenderInput(input_type, value, form_type){
     //  a span with camelcase input_type, to be used as label (class input_label)
     //  an element specific to the input type (class input_element)
     // the row is class input_table_row, the td are class input_table_td_label and input_table_td_input
-    console.log('RenderInput(' + input_type + ', ' + value + ')');
+    // console.log('RenderInput(' + input_type + ', ' + value + ')');
     let obj = document.createElement("tr");
     try {
         let label_text = camelCase(input_type);
@@ -198,26 +195,74 @@ function RenderInput(input_type, value, form_type){
             input.setAttribute("value", value);
         } else if (input_type == "type") {
             input = RenderSelect(GetOptions(form_type), value);
-        } else if (input_type == "config") {
-            input = document.createElement("pre");
-            try {
-                editor = new JsonEditor(input, value);
-            } catch (e) {
-                console.error('exception while creating editor: ' + e);
-            }
-        } else if (input_type == "command") {
-            if (value.message_type == "dict"){
-                input = document.createElement("pre");
-                try {
-                    editor = new JsonEditor(input, value.message);
-                } catch (e) {
-                    console.error('exception while creating editor: ' + e);
+        } else if (input_type == "config" || input_type == "command") {
+            input = document.createElement("div");
+            input.style.height = "400px;"
+            input.style.border = "0px";
+            input_view = document.createElement("table");
+            if (input_type == "config") {
+                for (const key in value) {
+                    sub_input = RenderGeneric(key, value[key])
+                    input_view.appendChild(sub_input)
                 }
-            } else {
-                input = document.createElement("textarea");
-                input.value = value;
+            } else if (input_type == "command") {
+                for (const key in value.message) {
+                    sub_input = RenderGeneric(key, value.message[key])
+                    input_view.appendChild(sub_input)
+                }
             }
+            
+            input_view.style.height = "400px";
+            editor_view = document.createElement("pre");
+            editor_view.classList.add("input_element")
+            if (input_type == "config") {
+                editor = new JsonEditor(editor_view, value);
+            } else if (input_type == "command") {
+                editor = new JsonEditor(editor_view, value.message);
+            }
+            input_view.style.display = "block";
+            editor_view.style.display = "none";
+            edit_button = document.createElement("button");
+            edit_button.style.display = "block";
+            edit_button.innerHTML = "Edit";
+            return_button = document.createElement("button");
+            return_button.style.display = "none";
+            return_button.innerHTML = "Return";
+            edit_button.addEventListener('click', function() {
+                input_view.style.display = "none";
+                editor_view.style.display = "block";
+                return_button.style.display = "block";
+                edit_button.style.display = "none";
+            });
+            return_button.addEventListener('click', function() {
+                input_view.style.display = "block";
+                editor_view.style.display = "none";
+                return_button.style.display = "none";
+                edit_button.style.display = "block";
+            });
+            edit_button.style.width = "60px";
+            edit_button.style.height = "20px";
+            return_button.style.width = "60px";
+            return_button.style.height = "20px";
+            input.appendChild(edit_button);
+            input.appendChild(return_button);
+            input.appendChild(input_view);
+            input.appendChild(editor_view);
+
         }
+        // } else if (input_type == "command") {
+        //     if (value.message_type == "dict"){
+        //         input = document.createElement("pre");
+        //         try {
+        //             editor = new JsonEditor(input, value.message);
+        //         } catch (e) {
+        //             console.error('exception while creating editor: ' + e);
+        //         }
+        //     } else {
+        //         input = document.createElement("textarea");
+        //         input.value = value;
+        //     }
+        // }
         input.classList.add("input_element");
         let td_input = document.createElement("td");
         td_input.classList.add("input_table_td_input");
@@ -225,7 +270,7 @@ function RenderInput(input_type, value, form_type){
         obj.appendChild(td_input);
         obj.classList.add("input_table_row");
     } catch (e) {
-        logging.error('exception while RenderInput: ' + e);
+        console.error('exception while RenderInput: ' + e);
     }
     return obj;
 }
@@ -239,7 +284,57 @@ function GetOptions(this_object){
     return options;
 }
 
+function RenderGeneric(name, value){
+    // this decides input widget based on the literal type of value
+    // returns a row containing two elements (each in a td):
+    //  a span with camelcase name, to be used as label (class input_label)
+    //  an element specific to the input type (class input_element)
+    // the row is class input_table_row, the td are class input_table_td_label and input_table_td_input
+    // console.log('RenderInput(' + name + ', ' + value + ')');
+    let obj = document.createElement("tr");
+    try {
+        let label_text = camelCase(name);
+        let label = document.createElement("span");
+        label.classList.add("input_label");
+        label.innerHTML = label_text;
+        let td_label = document.createElement("td");
+        td_label.classList.add("input_table_td_label");
+        td_label.appendChild(label);
+        obj.appendChild(td_label);
+        let input = null;
+        if (typeof value == "boolean") {
+            input = document.createElement("input");
+            input.setAttribute("type", "checkbox");
+            input.setAttribute("checked", value);
+        } else if (typeof value == "number"){
+            input = document.createElement("input");
+            input.setAttribute("type", "number");
+            input.setAttribute("value", value);
+        } else if (typeof value == "string") {
+            input = document.createElement("input");
+            input.setAttribute("type", "text");
+            input.setAttribute("value", value);
+        } else if (typeof value == "object") {
+            input = document.createElement("table");
+            for (const key in value) {
+                sub_input = RenderGeneric(key, value[key])
+                input.appendChild(sub_input)
+            }
+            input.style.border = "1px dashed";
+        }
+        let td_input = document.createElement("td");
+        td_input.appendChild(input);
+        obj.appendChild(td_input);
+        obj.classList.add("input_table_row");
+    } catch (e) {
+        logging.error('exception while RenderInput: ' + e);
+    }
+    return obj;
+}
+
+
 function RenderSelect(options, value) {
+    // return a selectbox using the given list of options, and a selected value
     let select = document.createElement("select");
     for (var i = 0; i < options.length; i++){
         let option = document.createElement("option");
@@ -257,14 +352,13 @@ function RenderSelect(options, value) {
 
 function RenderInputObject(this_object, form_type){
     // return a div containing all the input fields for keys in this_object
-    console.log('RenderInputObject(' + this_object + ')');
+    // console.log('RenderInputObject(' + this_object + ')');
     try {
         in_obj = document.createElement("div");
         in_obj.classList.add("input_object");
         let table = document.createElement("table");
         table.classList.add("table_input");
         for (const ct_key in this_object) {
-            console.log('creating input');
             try {
                 table.appendChild(RenderInput(ct_key, this_object[ct_key], form_type));
             } catch (e) {
@@ -297,17 +391,18 @@ function RenderInputForm_CuePart(cue_part){
     return this_object;
 }
 
-function testthing(){
+function TestThing(){
     ClickTab("edittargets");
+    console.info("running TestThing");
     try {
-        console.info("testthing");
-        let this_object = RenderInputForm_CommandTarget(CueStackTemplates.command_targets.tcp_generic)
-        // let this_object = RenderInputForm_CuePart(CueStackTemplates.cue_parts.voicemeeter)
-        // let this_object = RenderInputForm_TriggerSource(CueStackTemplates.trigger_sources.websocket)
+        
+        // let this_object = RenderInputForm_CommandTarget(CueStackTemplates.command_targets.mqtt_generic)
+        let this_object = RenderInputForm_CuePart(CueStackTemplates.cue_parts.voicemeeter)
+        // let this_object = RenderInputForm_TriggerSource(CueStackTemplates.trigger_sources.mqtt)
         let tab = document.getElementById("tab-edittargets");
         tab.appendChild(this_object);
     } catch (e) {
-        console.error("exception in testthing: " + e);
+        console.error("exception in TestThing: " + e);
     }
 }
 
@@ -315,7 +410,7 @@ function Setup() {
     console.log('setting up...')
     ClickTab("tester");
     GetStatus();
-    testthing();
+    TestThing();
     // setInterval(GetStatus, 4000)
 }
 

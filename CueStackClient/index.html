@@ -3,15 +3,7 @@
     <head>
         <title>CueStack Client</title>
         <meta name = "viewport" content = "width = device-width, initial-scale = 1"> 
-        <style>
-            .page-body {
-                display: flex;
-                flex-direction: column;
-                min-height: 100vh;
-                position: absolute;
-                z-index: 1000;
-            }
-        </style>
+        <link rel="stylesheet" href="style.css">
     </head>
     <body class="page-body">
         <div id="tabbar">
@@ -48,12 +40,14 @@
                 <h1>Edit Command Triggers</h1>
             </div>
         </div>
-        <div>
+        <div id="bottom-panel" class="bottom_panel">
             <h3>Websocket Status</h3>
-            <span id="websocket-status"></span>
+            <textarea id="websocket-status" class="bottom_panel_textarea"></textarea>
         </div>
         <script src="templates.js"></script>
         <script src="javascript.js"></script>
+        <script src="jquery-3.3.1.slim.min.js"></script>
+        <script src="jquery.json-editor.min.js"></script>
     </body>
 </html>
 

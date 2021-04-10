@@ -4,7 +4,7 @@
     Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 */
 
-CueStackTemplates = {
+const CueStackTemplates = {
     trigger_sources: {
         websocket: {
             enabled: true,

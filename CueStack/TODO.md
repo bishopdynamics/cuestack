@@ -17,3 +17,6 @@
     * also need to query for listing command targes and input sources
     * this gives us the opportunity to dynamically configure from a separate app exclusively thru the api.
     * config should be written to file as we go
+  
+* rendering input fields
+  * 

@@ -1,9 +1,10 @@
 0.1.1
-* extended and tweaked data api:
-  - renamed: cues -> getCues, stacks -> getStacks
+* extend and reorg data api:
+  - renamed: cues -> getCues, stacks -> getStacks, currentStack -> getCurrentStack
   - Added: addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig
 * enforce python 3.8+ 
 * all prebuilt binaries for windows report version with commit id they were built from
+* added CueStackClient templates.js
 
 0.1.0
 * started version numbers and changelog (everything prior is retro)

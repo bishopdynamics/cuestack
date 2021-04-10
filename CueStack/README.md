@@ -7,21 +7,10 @@
       * [Quick Start](#quick-start)
       * [Vocabulary](#vocabulary)
       * [Limitations](#limitations)
-      * [API](#api)    
+      * [API](#api)
+      * [Configuration](#configuration)
       * [Conceptual Diagram](#conceptual-diagram)
-      * [Config](#config)
-      * [Trigger Sources](#trigger-sources)
-         * [Websocket](#websocket)
-         * [HTTP GET](#http-get)
-         * [MQTT](#mqtt)
-      * [Command Targets](#command-targets)
-         * [OBS Studio via obs-websocket plugin](#obs-studio-via-obs-websocket-plugin)
-         * [Generic OSC](#generic-osc)
-         * [Generic UDP](#generic-udp)
-         * [Generic TCP](#generic-tcp)
-         * [HTTP GET](#http-get-1)
-         * [Generic Websocket](#generic-websocket)
-         * [MQTT](#mqtt-1)
+
 
 ## Intro to CueStack
 Inspired by an old tool called Cue Composer, this project seeks to provide a middle component as part of a whole production coordination system. 

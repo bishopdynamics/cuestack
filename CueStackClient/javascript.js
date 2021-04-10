@@ -1,3 +1,9 @@
+/*
+    CueStackClient
+
+    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
+*/
+
 
 WEBSOCKET_HOST = "localhost";
 WEBSOCKET_PORT = "8081";

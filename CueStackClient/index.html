@@ -14,14 +14,39 @@
         </style>
     </head>
     <body class="page-body">
-        <div>
-            <h2>Stacks</h2>
-            <span id="current-stack"></span>
-            <table id="stacks-table"></table>
+        <div id="tabbar">
+            <button onclick='ClickTab("tester");'>Tester</button>
+            <button onclick='ClickTab("managestacks");'>Manage Stacks</button>
+            <button onclick='ClickTab("editcues");'>Edit Cues</button>
+            <button onclick='ClickTab("edittargets");'>Edit Command Targets</button>
+            <button onclick='ClickTab("edittriggers");'>Edit Trigger Sources</button>
         </div>
-        <div>
-            <h2>Cues</h2>
-            <table id="cues-table"></table>
+        <div id="tabcontainer">
+            <div id="tab-tester">
+                <h1>Tester</h1>
+                <div>
+                    <h2>Stacks</h2>
+                    <span id="current-stack"></span>
+                    <table id="stacks-table"></table>
+                </div>
+                <div>
+                    <h2>Cues</h2>
+                    <table id="cues-table"></table>
+                </div>
+                
+            </div>
+            <div id="tab-managestacks">
+                <h1>Manage Stacks</h1>
+            </div>
+            <div id="tab-editcues">
+                <h1>Edit Cues</h1>
+            </div>
+            <div id="tab-edittargets">
+                <h1>Edit Command Targets</h1>
+            </div>
+            <div id="tab-edittriggers">
+                <h1>Edit Command Triggers</h1>
+            </div>
         </div>
         <div>
             <h3>Websocket Status</h3>

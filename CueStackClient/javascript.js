@@ -12,6 +12,8 @@ WS_OPTIONS = {
     "reconnectInterval": 4000
 }
 
+TABS_LIST = ["tester", "managestacks", "editcues", "edittargets", "edittriggers"]
+
 function UpdateWSStatus(message){
     console.log('ws status: ' + message);
     let thing = document.querySelector('#websocket-status');
@@ -147,9 +149,27 @@ function GetStatus() {
     RequestCues();
 }
 
+function ShowTab(tabname) {
+    
+    document.getElementById("tab-" + tabname).style.display = "block";
+}
+
+function HideAllTabs() {
+    for (let tabno in TABS_LIST) {
+        document.getElementById("tab-" + TABS_LIST[tabno]).style.display = "none";
+    }
+}
+
+function ClickTab(tabname) {
+    console.log('showing tab: ' + tabname);
+    HideAllTabs();
+    ShowTab(tabname);
+}
+
 
 function Setup() {
     console.log('setting up...')
+    ClickTab("tester");
     GetStatus();
     // setInterval(GetStatus, 4000)
 }

@@ -323,7 +323,7 @@ class CSMessageProcessor:
             elif request == 'renameStack':
                 try:
                     if self.current_cue_stack['name'] == payload['stack']:
-                        raise Exception('Cannot delete the currently active stack: %s' % payload['stack'])
+                        raise Exception('Cannot rename the currently active stack: %s' % payload['stack'])
                     if self.find_stack(payload['stack']) is not None:
                         if self.find_stack(payload['new_name']) is None:
                             logging.info('handling renameStack for stack: %s to: %s' % (payload['stack'], payload['new_name']))

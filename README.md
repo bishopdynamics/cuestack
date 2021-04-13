@@ -26,7 +26,9 @@ You may need to install [Visual C++ Redist 2015](https://www.microsoft.com/en-us
 
 ## Running from source on Windows
 
-Each tool has `setup.bat` and `run.bat`, they can be used to manually setup and run that tool from within the source tree. This is intended only for development, please use the prebuilt binaries. VoicemeeterAgent and ViscaAgent both live within the Cuestack folder, and share `setup.bat` with CueStack but have their own run scripts.
+Each tool has `setup.bat` and `run.bat`, they can be used to manually setup and run that tool from within the source tree. 
+This is intended only for development, please use the prebuilt binaries. VoicemeeterAgent lives within the Cuestack folder, and shares `setup.bat` with CueStack but has its own separate run script: `run-voicemeeteragent.bat`.
+ViscaAgent is not supported on Windows.
 
 ## Usage on Linux and macOS
 
@@ -34,4 +36,5 @@ All of these tools should work on any posix compliant system where python3.8+ an
 It is quite likely that these tools will work just fine with older versions of python3 and node.js but it has not been tested and is not supported. 
 All of the python tools check for 3.8+ at start, they will need to be modified.
 
-VoicemeeterAgent is the only tool here which is Windows-only, all the other tools have `setup.sh` and `run.sh` which can be used to manually setup and run that tool from within the source tree. VoicemeeterAgent and ViscaAgent both live within the Cuestack folder, and share `setup.sh` with CueStack but have their own run scripts.
+VoicemeeterAgent is the only tool here which is Windows-only, all the other tools have `setup.sh` and `run.sh` which can be used to manually setup and run that tool from within the source tree. 
+ViscaAgent lives within the Cuestack folder, and shares `setup.sh` with CueStack but has its own run script: `run-viscaagent.sh`.

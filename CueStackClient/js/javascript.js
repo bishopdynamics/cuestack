@@ -250,19 +250,6 @@ function RenderInput(input_type, value, form_type){
             input.appendChild(editor_view);
 
         }
-        // } else if (input_type == "command") {
-        //     if (value.message_type == "dict"){
-        //         input = document.createElement("pre");
-        //         try {
-        //             editor = new JsonEditor(input, value.message);
-        //         } catch (e) {
-        //             console.error('exception while creating editor: ' + e);
-        //         }
-        //     } else {
-        //         input = document.createElement("textarea");
-        //         input.value = value;
-        //     }
-        // }
         input.classList.add("input_element");
         let td_input = document.createElement("td");
         td_input.classList.add("input_table_td_input");
@@ -301,6 +288,7 @@ function RenderGeneric(name, value){
         td_label.classList.add("input_table_td_label");
         td_label.appendChild(label);
         obj.appendChild(td_label);
+        let td_input = document.createElement("td");
         let input = null;
         if (typeof value == "boolean") {
             input = document.createElement("input");
@@ -322,12 +310,24 @@ function RenderGeneric(name, value){
             }
             input.style.border = "1px dashed";
         }
-        let td_input = document.createElement("td");
+        if (typeof value != "object") {
+            if (typeof value == "boolean") {
+                input.addEventListener("input", function() {
+                    console.log('an input changed value to: ' + this.checked);
+                    // onchange_callback(this.value);
+                });
+            } else {
+                input.addEventListener("input", function() {
+                    console.log('an input changed value to: ' + this.value);
+                    // onchange_callback(this.value);
+                });
+            }
+        }
         td_input.appendChild(input);
         obj.appendChild(td_input);
         obj.classList.add("input_table_row");
     } catch (e) {
-        logging.error('exception while RenderInput: ' + e);
+        logging.error('exception while RenderGeneric: ' + e);
     }
     return obj;
 }

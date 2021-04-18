@@ -1,5 +1,5 @@
 {
-  "serial_port": "/dev/serial/by-id/usb-Twiga_TWIGACam-if03-port0",
+  "serial_port": "/dev/ttyAMA0",
   "device_id": 1,
   "command_sources": [
     {

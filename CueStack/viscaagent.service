@@ -1,0 +1,10 @@
+[Unit]
+Description=Start or stop ViscaAgent
+
+[Service]
+ExecStart=/home/pi/cuestack/CueStack/run-viscaagent.sh
+ExecStop=/bin/echo "Stopping ViscaAgent Service"
+User=pi
+RemainAfterExit=yes
+RestartSec=5
+

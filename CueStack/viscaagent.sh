@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
 FOLDER="/home/pi/cuestack/CueStack"
-LOG_FILE="/run/user/1000/viscaagent.log"
+LOG_FILE="/home/pi/viscaagent.log"
 
 TIMESTAMP=$(date)
-echo "$TIMESTAMP" > "$LOG_FILE"
+echo "$TIMESTAMP" > "$LOG_FILE" || {
+  echo "Failed to write to log file: $LOG_FILE"
+  exit 1
+}
 
 cd "$FOLDER" || {
   echo "Failed to cd to $FOLDER" | tee -a "$LOG_FILE"
@@ -17,3 +20,4 @@ cd "$FOLDER" || {
 }
 TIMESTAMP=$(date)
 echo "$TIMESTAMP /run-viscaagent.sh exited cleanly" >> "$LOG_FILE"
+

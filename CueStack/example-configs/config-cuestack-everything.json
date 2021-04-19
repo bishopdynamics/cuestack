@@ -269,6 +269,106 @@
               }
             }
           ]
+        },
+        {
+          "name": "test_visca_pwron",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_power",
+                    "args": {
+                      "device": 1,
+                      "onoff": true
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_pwroff",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_power",
+                    "args": {
+                      "device": 1,
+                      "onoff": false
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_1",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_2",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 2
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_3",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 3
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -399,6 +499,15 @@
       "type": "websocket_generic",
       "config": {
         "host": "192.168.1.74",
+        "port": 9901
+      }
+    },
+    {
+      "enabled": true,
+      "name": "visca_1",
+      "type": "websocket_generic",
+      "config": {
+        "host": "192.168.1.92",
         "port": 9901
       }
     }

@@ -1,11 +1,15 @@
 [Unit]
-Description=Start or stop ViscaAgent
+Description=ViscaAgent
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+StartLimitIntervalSec=500
+StartLimitBurst=5
 
 [Service]
 ExecStart=/home/pi/cuestack/CueStack/viscaagent.sh
 ExecStop=/bin/echo "Stopping ViscaAgent Service"
 User=pi
-RemainAfterExit=yes
+Restart=on-failure
 RestartSec=5
 
 [Install]

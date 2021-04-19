@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 FOLDER="/home/pi/cuestack/CueStack"
-LOG_FILE="/home/pi/viscaagent.log"
+LOG_FILE="/run/user/1000/viscaagent.log"
 
 TIMESTAMP=$(date)
 echo "$TIMESTAMP" > "$LOG_FILE"

@@ -5,12 +5,20 @@
 #    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 
 ENV_FOLDER="venv"
-PYTHON_VERSION="python3.8" # Nuitka does not play well with 3.9 yet
+PYTHON_VERSION_CURRENT="python3.8" # Nuitka does not play well with 3.9 yet
+PYTHON_VERSION_NEXT="python3.9"
 
+PYTHON_VERSION="$PYTHON_VERSION_CURRENT"
 command -v "$PYTHON_VERSION" || {
-	echo "$PYTHON_VERSION is required, but was not found"
-	exit 1
+  PYTHON_VERSION="$PYTHON_VERSION_NEXT"
+  command -v "$PYTHON_VERSION" || {
+    echo "$PYTHON_VERSION_CURRENT or $PYTHON_VERSION_NEXT is required, but neither were found"
+    exit 1
+  }
 }
+
+echo "using python version: $PYTHON_VERSION"
+
 
 if [ -d "${ENV_FOLDER}" ]; then
   echo "removing previous instance of ${ENV_FOLDER}"

@@ -78,15 +78,16 @@ class ViscaAgentMessageProcessor:
                 logging.error('JSON Decode Failure: %s' % ex)
                 return {'status': 'JSON Decode Failure: %s' % ex}
             if 'visca' in command_message:
-                if command_message['visca']['args']['device_id'] == self.device_id:
+                if command_message['visca']['args']['device'] == self.device_id:
                     try:
-                        self.send_command(command_message['visca'])
+                        result = self.send_command(command_message['visca'])
+                        logging.info('result of command: %s' % result)
                     except Exception as ex:
                         logging.error('exception while handling visca command: %s' % ex)
                         return {'status': 'Exception while handling visca command: %s' % ex}
                     return {'status': 'OK'}
                 else:
-                    logging.debug('ignoring message for other device id: %s' % command_message['visca']['args']['device_id'])
+                    logging.debug('ignoring message for other device id: %s' % command_message['visca']['args']['device'])
             else:
                 return {'status': 'Error: missing a supported command key'}
         except Exception as e:
@@ -107,7 +108,7 @@ class ViscaAgentMessageProcessor:
     def send_command(self, command):
         logging.info('sending visca command: %s' % command)
         method_to_call = getattr(self.v, command['request'])
-        method_to_call(**command['args'])
+        return method_to_call(**command['args'])
 
     def setup_command_sources(self):
         # setup command sources based on config, populating command_sources

@@ -409,7 +409,7 @@ class ViscaControl():
         first=1
 
         data = b'\x30'+bytes([first])
-        #import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         reply = self.send_broadcast(data) # set address
 
         if not reply:

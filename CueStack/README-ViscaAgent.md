@@ -69,7 +69,7 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
                   "visca": {
                     "request": "cmd_cam_zoom_tele_speed",
                     "args": {
-                      "device_id": 1,
+                      "device": 1,
                       "speed": 4
                     }
                   }

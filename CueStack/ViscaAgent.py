@@ -58,7 +58,7 @@ class ViscaAgent:
 
         signal.signal(signal.SIGTERM, self.handle_signal)
         signal.signal(signal.SIGINT, self.handle_signal)
-        logging.info('Voicemeeter Agent is ready')
+        logging.info('ViscaAgent is ready')
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:

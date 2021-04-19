@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# CueStack Message Processor
+# Voicemeeter Agent Message Processor
 
 #    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 

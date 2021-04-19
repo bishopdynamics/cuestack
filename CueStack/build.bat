@@ -25,3 +25,12 @@ rmdir /S /Q VoicemeeterAgent.build
 rmdir /S /Q VoicemeeterAgent.dist
 rmdir /S /Q VoicemeeterAgent.onefile-build
 echo Finished building VoicemeeterAgent.exe
+
+echo.
+echo Building ATEMAgent.exe
+py -m nuitka --mingw64 --onefile --plugin-enable=pylint-warnings --windows-onefile-tempdir --include-data-file=../VERSION=VERSION --include-data-file=../BUILD=BUILD ATEMAgent.py
+move ATEMAgent.exe "%CWD%\dist\"
+rmdir /S /Q ATEMAgent.build
+rmdir /S /Q ATEMAgent.dist
+rmdir /S /Q ATEMAgent.onefile-build
+echo Finished building ATEMAgent.exe

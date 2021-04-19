@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Visca Agent Message Processor
+# ATEM Agent Message Processor
 
 #    Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 
@@ -20,16 +20,13 @@ import json
 import logging
 from multiprocessing import Queue
 
-from visca import ViscaControl
+import PyATEMMax
+from typing import Dict, Any
+
 from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
 
-# self.v = ViscaControl(portname='/dev/serial/by-id/usb-Twiga_TWIGACam-if03-port0')
-# self.v.cmd_cam_zoom_tele_speed(self.CAM, 7)
-# self.v.cmd_cam_zoom_stop(self.CAM)
-# self.v.cmd_cam_zoom_wide_speed(self.CAM, 7)
 
-
-class ViscaAgentMessageProcessor:
+class ATEMAgentMessageProcessor:
     # The Visca Agent has its own message processor
     command_sources = {}  # objects managing a connection to a command source live here
     command_queue = None  # command sources place received messages in this queue, which the message processor then pulls from
@@ -40,36 +37,39 @@ class ViscaAgentMessageProcessor:
     }
 
     def __init__(self, config, log_level, loop):
-        logging.debug('Initializing a ViscaAgentMessageProcessor')
+        logging.debug('Initializing a ATEMAgentMessageProcessor')
         self.config = config
         self.loop = loop
         self.log_level = log_level
         self.command_queue = Queue()
         try:
+            self.atem_ip = self.config['atem_ip']
             self.setup_command_sources()
-            if 'device_id' in self.config:
-                self.device_id = self.config['device_id']
-            else:
-                self.device_id = 1
-            logging.info('This device_id is: %s' % self.device_id)
-            self.serial_port = self.config['serial_port']
-            logging.info('starting ViscaControl on serial port: %s' % self.serial_port)
-            self.v = ViscaControl(portname=self.serial_port)
-            self.v.start()
-            self.v.cmd_adress_set()
-            self.v.cmd_if_clear_all()
-            logging.info('ViscaAgent is ready')
+            self.switcher = PyATEMMax.ATEMMax()
+            self.switcher.setLogLevel(self.log_level)  # comment out this line to default PyATEMMax to logging.CRITICAL
+            self.switcher.registerEvent(self.switcher.atem.events.connectAttempt, self.onConnectAttempt)
+            self.switcher.registerEvent(self.switcher.atem.events.connect, self.onConnect)
+            self.switcher.registerEvent(self.switcher.atem.events.disconnect, self.onDisconnect)
+            self.switcher.registerEvent(self.switcher.atem.events.receive, self.onReceive)
+            self.switcher.registerEvent(self.switcher.atem.events.warning, self.onWarning)
+            self.switcher.connect(self.atem_ip)
+            self.switcher.waitForConnection()
+            logging.info('ATEMAgent is ready')
+
         except Exception as ex:
-            logging.error('exception while setting up ViscaAgentMessageProcessor: %s' % ex)
+            logging.error('exception while setting up ATEMAgentMessageProcessor: %s' % ex)
+            self.stop()
             raise ex
 
     def stop(self):
         logging.info('shutting down command sources')
+
         for this_source in self.command_sources:
             try:
                 self.command_sources[this_source].stop()
             except Exception:
                 pass
+        self.switcher.disconnect()
 
     def handle(self, _msg):
         try:
@@ -79,22 +79,40 @@ class ViscaAgentMessageProcessor:
             except Exception as ex:
                 logging.error('JSON Decode Failure: %s' % ex)
                 return {'status': 'JSON Decode Failure: %s' % ex}
-            if 'visca' in command_message:
-                if command_message['visca']['args']['device'] == self.device_id:
-                    try:
-                        result = self.send_command(command_message['visca'])
-                        logging.info('result of command: %s' % result)
-                    except Exception as ex:
-                        logging.error('exception while handling visca command: %s' % ex)
-                        return {'status': 'Exception while handling visca command: %s' % ex}
-                    return {'status': 'OK'}
-                else:
-                    logging.debug('ignoring message for other device id: %s' % command_message['visca']['args']['device'])
+            if 'atem' in command_message:
+                try:
+                    result = self.send_command(command_message['atem'])
+                    logging.info('result of command: %s' % result)
+                except Exception as ex:
+                    logging.error('exception while handling atem command: %s' % ex)
+                    return {'status': 'Exception while handling atem command: %s' % ex}
+                return {'status': 'OK'}
             else:
                 return {'status': 'Error: missing a supported command key'}
         except Exception as e:
             logging.error('unexpected exception while parsing message: %s' % e)
             return {'status': 'Unexpected Exception'}
+
+    def onConnectAttempt(self, params: Dict[Any, Any]) -> None:
+        """Called when a connection is attempted"""
+        logging.info('Attempting to connect to switcher at %s' % params['switcher'].ip)
+
+    def onConnect(self, params: Dict[Any, Any]) -> None:
+        """Called when the switcher is connected"""
+        logging.info('Connected to switcher at %s' % params['switcher'].ip)
+
+    def onDisconnect(self, params: Dict[Any, Any]) -> None:
+        """Called when the switcher disconnects"""
+        logging.info('DISCONNECTED from switcher at %s' % params['switcher'].ip)
+
+    def onReceive(self, params: Dict[Any, Any]) -> None:
+        """Called when data is received from the switcher"""
+        logging.info('Recieved from switcher: [%s]: %s' % (params['cmd'], params['cmdName']))
+
+    def onWarning(self, params: Dict[Any, Any]) -> None:
+        """Called when a warning message is received from the switcher"""
+        logging.warning('Recieved warning from switcher: %s' % params['cmd'])
+
 
     def dict_raise_on_duplicates(self, ordered_pairs):
         # reject duplicate keys. JSON decoder allows duplicate keys, but we do not
@@ -108,8 +126,8 @@ class ViscaAgentMessageProcessor:
         return d
 
     def send_command(self, command):
-        logging.info('sending visca command: %s' % command)
-        method_to_call = getattr(self.v, command['request'])
+        logging.info('sending atem command: %s' % command)
+        method_to_call = getattr(self.switcher, command['request'])
         return method_to_call(**command['args'])
 
     def setup_command_sources(self):

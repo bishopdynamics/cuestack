@@ -10,6 +10,7 @@ License: [Proprietary](LICENSE.txt)
 * [CueStack](CueStack/README.md)
 * [VoicemeeterAgent](CueStack/README-VoicemeeterAgent.md)
 * [ViscaAgent](CueStack/README-ViscaAgent.md)
+* [ATEMAgent](CueStack/README-ATEMAgent.md)
 * [CueStackClient](CueStackClient/README.md)
 * [AudioTrigger](AudioTrigger/README.md)
 * [WebsocketTestTarget](WebsocketTestTarget/README.md)
@@ -18,7 +19,7 @@ License: [Proprietary](LICENSE.txt)
 
 We provide prebuilt binaries for Windows here: [dist](dist). 
 
-For CueStack, and VoicemeeterAgent, you will need a config file, see [Quick Start](CueStack/README.md#quick-start) or start with an example from here: [CueStack/example-configs](CueStack/example-configs)
+For CueStack, ATEMAgent, and VoicemeeterAgent, you will need a config file, see [Quick Start](CueStack/README.md#quick-start) or start with an example from here: [CueStack/example-configs](CueStack/example-configs)
 
 There are no prebuilt ViscaAgent binaries for Windows, as it is not supported on Windows.
 

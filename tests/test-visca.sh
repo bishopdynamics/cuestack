@@ -1,5 +1,5 @@
 PRESET_LIST="0 1 2 3"
-REST_TIME="0.1"
+REST_TIME="0.3"
 
 while true; do 
 	for NUM in $PRESET_LIST; do

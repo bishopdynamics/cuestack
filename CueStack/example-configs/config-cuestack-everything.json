@@ -311,6 +311,26 @@
           ]
         },
         {
+          "name": "test_visca_preset_0",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
           "name": "test_visca_preset_1",
           "parts": [
             {
@@ -360,6 +380,86 @@
                 "message": {
                   "visca": {
                     "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 3
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_0_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_1_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_2_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 2
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_3_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
                     "args": {
                       "device": 1,
                       "num": 3
@@ -522,7 +622,7 @@
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "GenericHTTP",
       "type": "http",
       "config": {

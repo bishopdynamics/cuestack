@@ -52,7 +52,9 @@ class ViscaAgentMessageProcessor:
             else:
                 self.device_id = 1
             logging.info('This device_id is: %s' % self.device_id)
-            self.v = ViscaControl(portname=self.config['serial_port'])
+            self.serial_port = self.config['serial_port']
+            logging.info('starting ViscaControl on serial port: %s' % self.serial_port)
+            self.v = ViscaControl(portname=self.serial_port)
             self.v.start()
             self.v.cmd_adress_set()
             self.v.cmd_if_clear_all()

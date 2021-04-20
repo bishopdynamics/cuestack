@@ -109,29 +109,32 @@ class CSMessageProcessor:
             logging.debug('received trigger for cue: %s' % trigger_message['cue'])
             actual_cue = self.find_cue(self.current_cue_stack, trigger_message['cue'])
             if actual_cue is not None:
-                if 'enabled' in actual_cue:
-                    if not actual_cue['enabled']:
-                        logging.warning('silently ignoring disabled cue %s' % trigger_message['cue'])
-                        return {'status': 'OK'}
-                num_parts = 0
-                total_parts = len(actual_cue['parts'])
-                logging.info('running cue: %s' % trigger_message['cue'])
-                for cue_part in actual_cue['parts']:
-                    num_parts += 1
-                    if 'enabled' in cue_part:
-                        if not cue_part['enabled']:
-                            logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (trigger_message['cue'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-                            continue
-                    logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (trigger_message['cue'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-                    try:
-                        self.run_cue_command(cue_part)
-                    except Exception as ex:
-                        logging.error(ex)
-                        pass
+                self.run_cue(actual_cue)
             else:
                 logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
                 return {'status': 'Cue Not Found: %s' % trigger_message['cue']}
         return {'status': 'OK'}
+
+    def run_cue(self, actual_cue):
+        if 'enabled' in actual_cue:
+            if not actual_cue['enabled']:
+                logging.warning('silently ignoring disabled cue %s' % actual_cue['name'])
+                return
+        num_parts = 0
+        total_parts = len(actual_cue['parts'])
+        logging.debug('running cue: %s' % actual_cue['name'])
+        for cue_part in actual_cue['parts']:
+            num_parts += 1
+            if 'enabled' in cue_part:
+                if not cue_part['enabled']:
+                    logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                    continue
+            logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+            try:
+                self.run_cue_command(cue_part)
+            except Exception as ex:
+                logging.error(ex)
+                pass
 
     def run_cue_command(self, cue_part):
         if cue_part['target'] == 'internal':

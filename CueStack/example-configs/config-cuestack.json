@@ -549,6 +549,19 @@
               }
             }
           ]
+        },
+        {
+          "name": "test_disabled_cue",
+          "enabled": false,
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {}
+              }
+            }
+          ]
         }
       ]
     },

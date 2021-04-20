@@ -26,6 +26,7 @@ cd "%CWD_TOP%\CueStack"
 CALL build
 move "%CWD_TOP%\CueStack\dist\CueStack.exe" "%FINAL_DIST%\"
 move "%CWD_TOP%\CueStack\dist\VoicemeeterAgent.exe" "%FINAL_DIST%\"
+move "%CWD_TOP%\CueStack\dist\ATEMAgent.exe" "%FINAL_DIST%\"
 rmdir /S /Q "%CWD_TOP%\CueStack\dist"
 cd "%CWD_TOP%"
 

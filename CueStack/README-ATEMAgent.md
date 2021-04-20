@@ -49,9 +49,9 @@ ATEM Agent has its own config file, which is pretty straightforward:
 And a cue part in CueStack looks like this:
 ```json
             {
-              "target": "visca-agent",
+              "target": "atem-agent",
               "command": {
-                "message": "{\"atem\": {\"request\": \"setProgramInputVideoSource\", \"args\": {\"mE\": 0, \"videoSource\": 2}}"
+                "message": "{\"atem\": {\"request\": \"setMacroAction\", \"args\": {\"macro\": \"macro1\", \"action\": \"runMacro\"}}"
               }
             }
 ```
@@ -60,18 +60,26 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
 
 ```json
             {
-              "target": "visca-agent",
+              "target": "atem-agent",
               "command": {
                 "message_type": "dict",
                 "message": {
-                  "atem": {
-                    "request": "setProgramInputVideoSource",
-                    "args": {
-                      "mE": 0,
-                      "videoSource": 2
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro1",
+                            "action": "runMacro"
+                        }
                     }
-                  }
                 }
               }
             }
 ```
+
+Valid options for `action` are:
+* `runMacro`
+* `stopMacro`
+* `stopRecording`
+* `insertWaitForUser`
+* `continueMacro`
+* `deleteMacro`

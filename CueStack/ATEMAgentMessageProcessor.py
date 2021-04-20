@@ -35,6 +35,7 @@ class ATEMAgentMessageProcessor:
         'http': CSTriggerGenericHTTP,
         'mqtt': CSTriggerGenericMQTT,
     }
+    connection_timeout = 4.0  # seconds, timeout for connecting to the ATEM
 
     def __init__(self, config, log_level, loop):
         logging.debug('Initializing a ATEMAgentMessageProcessor')
@@ -46,16 +47,12 @@ class ATEMAgentMessageProcessor:
             self.atem_ip = self.config['atem_ip']
             self.setup_command_sources()
             self.switcher = PyATEMMax.ATEMMax()
-            self.switcher.setLogLevel(self.log_level)  # comment out this line to default PyATEMMax to logging.CRITICAL
-            self.switcher.registerEvent(self.switcher.atem.events.connectAttempt, self.onConnectAttempt)
-            self.switcher.registerEvent(self.switcher.atem.events.connect, self.onConnect)
+            # self.switcher.setLogLevel(self.log_level)  # comment out this line to default PyATEMMax to logging.CRITICAL
             self.switcher.registerEvent(self.switcher.atem.events.disconnect, self.onDisconnect)
-            self.switcher.registerEvent(self.switcher.atem.events.receive, self.onReceive)
             self.switcher.registerEvent(self.switcher.atem.events.warning, self.onWarning)
             self.switcher.connect(self.atem_ip)
-            self.switcher.waitForConnection()
+            self.switcher.waitForConnection(infinite=False, waitForFullHandshake=False)
             logging.info('ATEMAgent is ready')
-
         except Exception as ex:
             logging.error('exception while setting up ATEMAgentMessageProcessor: %s' % ex)
             self.stop()
@@ -63,7 +60,6 @@ class ATEMAgentMessageProcessor:
 
     def stop(self):
         logging.info('shutting down command sources')
-
         for this_source in self.command_sources:
             try:
                 self.command_sources[this_source].stop()
@@ -84,7 +80,7 @@ class ATEMAgentMessageProcessor:
                     result = self.send_command(command_message['atem'])
                     logging.info('result of command: %s' % result)
                 except Exception as ex:
-                    logging.error('exception while handling atem command: %s' % ex)
+                    logging.exception('exception while handling atem command: %s' % ex)
                     return {'status': 'Exception while handling atem command: %s' % ex}
                 return {'status': 'OK'}
             else:
@@ -93,26 +89,13 @@ class ATEMAgentMessageProcessor:
             logging.error('unexpected exception while parsing message: %s' % e)
             return {'status': 'Unexpected Exception'}
 
-    def onConnectAttempt(self, params: Dict[Any, Any]) -> None:
-        """Called when a connection is attempted"""
-        logging.info('Attempting to connect to switcher at %s' % params['switcher'].ip)
-
-    def onConnect(self, params: Dict[Any, Any]) -> None:
-        """Called when the switcher is connected"""
-        logging.info('Connected to switcher at %s' % params['switcher'].ip)
-
     def onDisconnect(self, params: Dict[Any, Any]) -> None:
         """Called when the switcher disconnects"""
         logging.info('DISCONNECTED from switcher at %s' % params['switcher'].ip)
 
-    def onReceive(self, params: Dict[Any, Any]) -> None:
-        """Called when data is received from the switcher"""
-        logging.info('Recieved from switcher: [%s]: %s' % (params['cmd'], params['cmdName']))
-
     def onWarning(self, params: Dict[Any, Any]) -> None:
         """Called when a warning message is received from the switcher"""
         logging.warning('Recieved warning from switcher: %s' % params['cmd'])
-
 
     def dict_raise_on_duplicates(self, ordered_pairs):
         # reject duplicate keys. JSON decoder allows duplicate keys, but we do not

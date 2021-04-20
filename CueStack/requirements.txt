@@ -8,4 +8,6 @@ websocket-client
 paho-mqtt
 toml
 pyserial
-pyatemmax
+
+# using local copy for the moment
+# pyatemmax

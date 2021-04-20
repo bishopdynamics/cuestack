@@ -469,6 +469,86 @@
               }
             }
           ]
+        },
+        {
+          "name": "test_atem_macro_1",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro1",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_2",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro2",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_3",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro3",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_4",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro4",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -603,11 +683,20 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "visca_1",
       "type": "websocket_generic",
       "config": {
         "host": "192.168.1.92",
+        "port": 9901
+      }
+    },
+    {
+      "enabled": true,
+      "name": "atem_1",
+      "type": "websocket_generic",
+      "config": {
+        "host": "localhost",
         "port": 9901
       }
     }

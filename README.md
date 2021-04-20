@@ -5,6 +5,8 @@ Copyright (C) 2021 by James Bishop (james@bishopdynamics.com)
 
 License: [Proprietary](LICENSE.txt)
 
+[Change Log](CHANGELOG.md)
+
 ## Contents
 
 * [CueStack](CueStack/README.md)

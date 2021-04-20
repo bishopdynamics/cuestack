@@ -7,4 +7,8 @@ CueStack.build/*
 CueStack.dist/*
 CueStack.onefile-build/*
 CueStack.exe
+config-cuestack.json
+config-viscaagent.json
+config-voicemeeteragent.json
+config-atemagent.json
 dist/*

@@ -83,7 +83,7 @@ class ViscaAgentMessageProcessor:
                 if command_message['visca']['args']['device'] == self.device_id:
                     try:
                         result = self.send_command(command_message['visca'])
-                        logging.info('result of command: %s' % result)
+                        logging.debug('result of command: %s' % result)
                     except Exception as ex:
                         logging.error('exception while handling visca command: %s' % ex)
                         return {'status': 'Exception while handling visca command: %s' % ex}
@@ -108,7 +108,7 @@ class ViscaAgentMessageProcessor:
         return d
 
     def send_command(self, command):
-        logging.info('sending visca command: %s' % command)
+        logging.debug('sending visca command: %s' % command)
         method_to_call = getattr(self.v, command['request'])
         return method_to_call(**command['args'])
 

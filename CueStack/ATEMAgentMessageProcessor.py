@@ -78,7 +78,7 @@ class ATEMAgentMessageProcessor:
             if 'atem' in command_message:
                 try:
                     result = self.send_command(command_message['atem'])
-                    logging.info('result of command: %s' % result)
+                    logging.debug('result of command: %s' % result)
                 except Exception as ex:
                     logging.exception('exception while handling atem command: %s' % ex)
                     return {'status': 'Exception while handling atem command: %s' % ex}

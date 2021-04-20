@@ -610,7 +610,7 @@
   ],
   "command_targets": [
     {
-      "enabled": true,
+      "enabled": false,
       "name": "obs",
       "type": "obs_websocket",
       "config": {
@@ -620,7 +620,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "qlcplus",
       "type": "osc_generic",
       "config": {
@@ -674,7 +674,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "voicemeeter",
       "type": "websocket_generic",
       "config": {
@@ -692,7 +692,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "atem_1",
       "type": "websocket_generic",
       "config": {

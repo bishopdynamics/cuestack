@@ -12,7 +12,7 @@
               "command": {
                 "request": "SetSourceFilterVisibility",
                 "args": {
-                  "sourceName": "scene1",
+                  "sourceName": "slave1",
                   "filterName": "expanded",
                   "filterEnabled": true
                 }
@@ -22,14 +22,14 @@
         },
         {
           "name": "scene1_inactive",
-          "enabled": true,
+          "enabled": false,
           "parts": [
             {
               "target": "obs",
               "command": {
                 "request": "SetSourceFilterVisibility",
                 "args": {
-                  "sourceName": "scene1",
+                  "sourceName": "slave1",
                   "filterName": "normal",
                   "filterEnabled": true
                 }
@@ -38,14 +38,85 @@
           ]
         },
         {
-          "name": "gotoscene_foobar",
+          "name": "scene2_active",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave2",
+                  "filterName": "expanded",
+                  "filterEnabled": true
+                }
+              }
+            },
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew2",
+                "value": 42
+              }
+            },
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": true,
+                      "A1": false,
+                      "A2": false,
+                      "A3": true,
+                      "A4": true,
+                      "gain": 1.4
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene2_inactive",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetSourceFilterVisibility",
+                "args": {
+                  "sourceName": "slave2",
+                  "filterName": "normal",
+                  "filterEnabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "foobar",
           "parts": [
             {
               "target": "obs",
               "command": {
                 "request": "SetCurrentScene",
                 "args": {
-                  "scene_name": "foobar"
+                  "scene_name": "foobar_v1"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "deadbeef",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "deadbeef_v1"
                 }
               }
             }
@@ -58,6 +129,17 @@
               "target": "qlcplus",
               "command": {
                 "address": "/1/brew1"
+              }
+            }
+          ]
+        },
+        {
+          "name": "qlc-brew-2",
+          "parts": [
+            {
+              "target": "qlcplus",
+              "command": {
+                "address": "/1/brew2"
               }
             }
           ]
@@ -94,12 +176,43 @@
           ]
         },
         {
-          "name": "test_subcues",
+          "name": "voicemeeter-preset2",
+          "parts": [
+            {
+              "target": "voicemeeter",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "apply": {
+                    "in-0": {
+                      "mute": false,
+                      "A1": false,
+                      "A2": false,
+                      "A3": true,
+                      "A4": true,
+                      "gain": 4.2
+                    },
+                    "in-1": {
+                      "mute": true,
+                      "A1": true,
+                      "A2": false,
+                      "A3": true,
+                      "A4": false,
+                      "gain": -55.1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "full_scene_1",
           "parts": [
             {
               "target": "internal",
               "command": {
-                "cue": "gotoscene_foobar"
+                "cue": "foobar"
               }
             },
             {
@@ -117,15 +230,37 @@
           ]
         },
         {
+          "name": "full_scene_2",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "deadbeef"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "voicemeeter-preset2"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "qlc-brew-2"
+              }
+            }
+          ]
+        },
+        {
           "name": "test_http",
           "parts": [
             {
               "target": "http-example",
-              "comment": "http://localhost:9090/endpoint?foo=1&bar=clementine",
               "command": {
                 "message_type": "dict",
                 "message": {
-                  "path": "endpoint",
+                  "path": "deadbeef",
                   "params": {
                     "foo": 1,
                     "bar": "clementine"
@@ -134,41 +269,338 @@
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "name": "StackOne",
-      "cues": [
+        },
         {
-          "name": "scene1_active",
+          "name": "test_visca_pwron",
           "parts": [
             {
-              "target": "obs",
+              "target": "visca_1",
               "command": {
-                "request": "SetSourceFilterVisibility",
-                "args": {
-                  "sourceName": "scene1",
-                  "filterName": "expanded",
-                  "filterEnabled": true
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_power",
+                    "args": {
+                      "device": 1,
+                      "onoff": true
+                    }
+                  }
                 }
               }
             }
           ]
         },
         {
-          "name": "scene1_inactive",
-          "enabled": true,
+          "name": "test_visca_pwroff",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_power",
+                    "args": {
+                      "device": 1,
+                      "onoff": false
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_0",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_1",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_2",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 2
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_3",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_recall",
+                    "args": {
+                      "device": 1,
+                      "num": 3
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_0_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_1_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_2_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 2
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_visca_preset_3_store",
+          "parts": [
+            {
+              "target": "visca_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                  "visca": {
+                    "request": "cmd_cam_memory_set",
+                    "args": {
+                      "device": 1,
+                      "num": 3
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_1",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro1",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_2",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro2",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_3",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro3",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_atem_macro_4",
+          "parts": [
+            {
+              "target": "atem_1",
+              "command": {
+                "message_type": "dict",
+                "message": {
+                    "atem": {
+                        "request": "setMacroAction",
+                        "args": {
+                            "macro": "macro4",
+                            "action": "runMacro"
+                        }
+                    }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "StackTwo",
+      "cues": [
+        {
+          "name": "foobar",
           "parts": [
             {
               "target": "obs",
               "command": {
-                "request": "SetSourceFilterVisibility",
+                "request": "SetCurrentScene",
                 "args": {
-                  "sourceName": "scene1",
-                  "filterName": "normal",
-                  "filterEnabled": true
+                  "scene_name": "foobar_v2"
                 }
+              }
+            }
+          ]
+        },
+        {
+          "name": "deadbeef",
+          "parts": [
+            {
+              "target": "obs",
+              "command": {
+                "request": "SetCurrentScene",
+                "args": {
+                  "scene_name": "deadbeef_v2"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_active",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "foobar"
+              }
+            }
+          ]
+        },
+        {
+          "name": "scene1_inactive",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "deadbeef"
               }
             }
           ]
@@ -179,6 +611,43 @@
   "command_targets": [
     {
       "enabled": true,
+      "name": "obs",
+      "type": "obs_websocket",
+      "config": {
+        "host": "localhost",
+        "port": 4444,
+        "password": "secret"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "qlcplus",
+      "type": "osc_generic",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 7703
+      }
+    },
+    {
+      "enabled": false,
+      "name": "tcp-example",
+      "type": "tcp_generic",
+      "config": {
+        "host": "localhost",
+        "port": 8103
+      }
+    },
+    {
+      "enabled": false,
+      "name": "udp-example",
+      "type": "udp_generic",
+      "config": {
+        "host": "localhost",
+        "port": 9191
+      }
+    },
+    {
+      "enabled": false,
       "name": "http-example",
       "type": "http_generic",
       "config": {
@@ -187,7 +656,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "websocket-example",
       "type": "websocket_generic",
       "config": {
@@ -196,12 +665,39 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "mqtt-example",
       "type": "mqtt_generic",
       "config": {
         "host": "james-broker",
         "port": 1883
+      }
+    },
+    {
+      "enabled": true,
+      "name": "voicemeeter",
+      "type": "websocket_generic",
+      "config": {
+        "host": "localhost",
+        "port": 9901
+      }
+    },
+    {
+      "enabled": true,
+      "name": "visca_1",
+      "type": "websocket_generic",
+      "config": {
+        "host": "192.168.1.92",
+        "port": 9901
+      }
+    },
+    {
+      "enabled": true,
+      "name": "atem_1",
+      "type": "websocket_generic",
+      "config": {
+        "host": "localhost",
+        "port": 9701
       }
     }
   ],
@@ -223,7 +719,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "GenericMQTT",
       "type": "mqtt",
       "config": {

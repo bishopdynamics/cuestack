@@ -83,3 +83,7 @@ Valid options for `action` are:
 * `insertWaitForUser`
 * `continueMacro`
 * `deleteMacro`
+
+
+You can more valid options for `request` [here](https://clvlabs.github.io/PyATEMMax/docs/methods/set), along with the names of valid fields for `args`. Where that documentation says something like "see ATEMAudioSources", you can look up the options [here](https://clvlabs.github.io/PyATEMMax/docs/data/protocol/#value-lists).
+

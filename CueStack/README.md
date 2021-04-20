@@ -42,7 +42,6 @@ Notes:
 
 ## Limitations
 
-* A Cue represents an instantanious situation, it does not include any timing information. All timing should be handled by whatever is receiving the command. This is an intentional design decision, as it allows CueStack to run as fast as possible without any consideration for timing.
 * Triggers are opaque; you cannot pass along information with them
 * commands are sent to targets one way only; though we may use an API capable of returning data, we make no use of it.
 

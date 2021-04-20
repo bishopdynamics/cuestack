@@ -28,6 +28,7 @@ Configuration is stored in a single file: `config-cuestack.json`. It contains fo
           "parts": [
             {
               "target": "tcp-example",
+              "delay": 4300,
               "command": {
                 "message": "i am NOT the walrus"
               }
@@ -60,6 +61,10 @@ Configuration is stored in a single file: `config-cuestack.json`. It contains fo
   ]
 }
 ```
+
+## Cue Parts
+
+A `part` represents a single action to be taken, and a `cue` may have many parts. A part may include `delay` in milliseconds, and if omitted it is assumed to be zero. See each command target type below for individual usage.
 
 ## Trigger Sources
 

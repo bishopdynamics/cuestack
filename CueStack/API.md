@@ -27,15 +27,15 @@ The Data API is primarily intended for use by CueStackClient
 
 The `request` key may be one of the options below; if the request needs to return data, it will be in `response`
 
-* `cues`
+* `getCues`
   - returns `"response": {"cues": []}`, where `[]` is a list of all cues by name in the currently active stack
-* `stacks`
+* `getStacks`
   - returns `"response": {"stacks": []}`, where `[]` is a list of all stacks by name
-* `currentStack`
+* `getCurrentStack`
   - returns `"response": {"currentStack": "stackname"}`, where `stackname` is the name of the current stack
-* `triggerSources`
+* `getTriggerSources`
   - returns `"response": {"triggerSources": []}`, where `[]` is a list of all trigger sources by name
-* `commandTargets`
+* `getCommandTargets`
   - returns `"response": {"commandTargets": []}`, where `[]` is a list of all command targets by name
 
 There are some options which require additional data be given in `request_payload`; these options only return `status`

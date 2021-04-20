@@ -2,11 +2,13 @@
 * WIP
 
 0.1.1
-* extend and reorg data api:
-  - renamed: cues -> getCues, stacks -> getStacks, currentStack -> getCurrentStack
-  - Added: addCue, addStack, setDefaultStack, addTarget, addTrigger, setEnabled, getConfig, deleteStack, deleteCue, renameStack
+* extend and reorg data api endpoints:
+  - Renamed: cues -> getCues, stacks -> getStacks, currentStack -> getCurrentStack
+  - Added: addCue, deleteCue, addStack, deleteStack, renameStack
+  - Added: addTarget, addTrigger, getTriggerSources, getCommandTargets
+  - Added: getConfig, setEnabled, command
 * enforce python 3.8+
-* allow python3.9 in CueStack/setup.sh
+* allow python3.9 in CueStack/setup.sh (for ViscaAgent on raspbian bullseye)
 * all prebuilt binaries for windows report version with commit id they were built from
 * added CueStackClient templates.js
 * started (but not complete) thinking about a full web client for editing config

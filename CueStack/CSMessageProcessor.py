@@ -172,12 +172,12 @@ class CSMessageProcessor:
             elif request == 'getCurrentStack':
                 logging.debug('handling request currentStack')
                 response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
-            elif request == 'triggerSources':
+            elif request == 'getTriggerSources':
                 sourcelist = []
                 for src in self.trigger_sources:
                     sourcelist.append(src)
                 response = {'status': 'OK', 'response': {'triggerSources': sourcelist}}
-            elif request == 'commandTargets':
+            elif request == 'getCommandTargets':
                 targetlist = []
                 for target in self.command_targets:
                     targetlist.append(target)

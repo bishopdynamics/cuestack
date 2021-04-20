@@ -579,6 +579,100 @@
               }
             }
           ]
+        },
+        {
+          "name": "test_timing_visca",
+          "parts": [
+            {
+              "target": "internal",
+              "delay": 0,
+              "command": {
+                "cue": "test_visca_preset_0"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 3000,
+              "command": {
+                "cue": "test_visca_preset_3"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 2000,
+              "command": {
+                "cue": "test_visca_preset_2"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 1000,
+              "command": {
+                "cue": "test_visca_preset_1"
+              }
+            }
+          ]
+        },
+        {
+          "name": "test_timing_qlc",
+          "parts": [
+            {
+              "target": "internal",
+              "delay": 0,
+              "command": {
+                "cue": "qlc-brew-2"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 1500,
+              "command": {
+                "cue": "qlc-brew-1"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 1000,
+              "command": {
+                "cue": "qlc-brew-1"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 500,
+              "command": {
+                "cue": "qlc-brew-2"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 2000,
+              "command": {
+                "cue": "qlc-brew-1"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 3000,
+              "command": {
+                "cue": "qlc-brew-2"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 2500,
+              "command": {
+                "cue": "qlc-brew-1"
+              }
+            },
+            {
+              "target": "internal",
+              "delay": 3500,
+              "command": {
+                "cue": "qlc-brew-2"
+              }
+            }
+          ]
         }
       ]
     },

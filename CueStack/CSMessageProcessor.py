@@ -16,93 +16,19 @@
 # pylint: disable=C0111,W0703,C0301,R0912,R0915,R0904,C0302,R1702,W0511
 
 
+import time
 import json
 import copy
 import logging
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from multiprocessing import Process, Queue
 from threading import Thread
 
 from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
 from CSCommandTargets import CSTargetOBS, CSTargetGenericOSC, CSTargetGenericTCP, CSTargetGenericUDP, CSTargetGenericHTTP, CSTargetGenericWebsocket, CSTargetGenericMQTT
 
-
-class CSCueRunner:
-    # TODO this reimplements a bunch of methods from message processor, this could be better
-    def __init__(self, command_queues, command_targets_list, current_cue_stack, actual_cue):
-        self.command_queues = command_queues
-        self.command_targets_list = command_targets_list
-        self.current_cue_stack = current_cue_stack
-        self.cue = actual_cue
-        self.run_cue()
-
-    def run_cue(self):
-        actual_cue = self.cue
-        try:
-            if 'enabled' in actual_cue:
-                if not actual_cue['enabled']:
-                    logging.warning('silently ignoring disabled cue %s' % actual_cue['name'])
-                    return
-            num_parts = 0
-            total_parts = len(actual_cue['parts'])
-            logging.debug('running cue: %s' % actual_cue['name'])
-            for cue_part in actual_cue['parts']:
-                num_parts += 1
-                if 'enabled' in cue_part:
-                    if not cue_part['enabled']:
-                        logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-                        continue
-                logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-                try:
-                    self.run_cue_command(cue_part)
-                except Exception as ex:
-                    logging.error(ex)
-                    pass
-        except Exception as exe:
-            logging.error('unexpected exception while cue runner: %s' % exe)
-
-    def run_cue_command(self, cue_part):
-        if cue_part['target'] == 'internal':
-            # an internal cue part can be used to call another trigger
-            timestamp = str(datetime.now())
-            logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
-            self.handle_api_cuestack(cue_part['command'])
-        else:
-            if cue_part['target'] in self.command_targets_list:
-                timestamp = str(datetime.now())
-                logging.debug('%s executing a part' % timestamp)
-                self.command_queues[cue_part['target']].put(cue_part['command'])
-            else:
-                raise Exception('no enabled command target exists to handle cue target: %s' % cue_part['target'])
-
-    def handle_api_cuestack(self, trigger_message):
-        # triggering a cue
-        if 'cue' in trigger_message:
-            logging.debug('received trigger for cue: %s' % trigger_message['cue'])
-            actual_cue = self.find_cue(self.current_cue_stack, trigger_message['cue'])
-            if actual_cue is not None:
-                if not self.start_subcue_runner(actual_cue):
-                    logging.error('failed to start sub cue runner')
-            else:
-                logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
-
-    def start_subcue_runner(self, actual_cue):
-        try:
-            cue_runner = Thread(target=CSCueRunner, args=(self.command_queues, self.command_targets_list, self.current_cue_stack, actual_cue))
-            cue_runner.start()
-            return True
-        except Exception as ex:
-            logging.exception('unexpected exception while starting subcue runner: %s' % ex)
-            return False
-
-    def find_cue(self, stack, cuename):
-        found_cue = None
-        for cue in stack['cues']:
-            if cue['name'] == cuename:
-                found_cue = cue
-                break
-        return found_cue
+from CSCommon import *
 
 
 class CSMessageProcessor:
@@ -132,7 +58,7 @@ class CSMessageProcessor:
         self.loop = loop
         self.log_level = log_level
         self.trigger_queue = Queue()
-        self.current_cue_stack = self.find_stack(config['default_stack'])  # holds actual stack object
+        self.current_cue_stack = find_stack(self.config, self.config['default_stack'])  # holds actual stack object
         self.setup_command_targets()
         self.setup_trigger_sources()
 
@@ -156,7 +82,7 @@ class CSMessageProcessor:
         # you can have cut, stack, and request all in the same message
         try:
             try:
-                trigger_message = json.loads(_msg, object_pairs_hook=self.dict_raise_on_duplicates)
+                trigger_message = json.loads(_msg, object_pairs_hook=dict_raise_on_duplicates)
                 logging.debug('decoded message: \n%s' % json.dumps(trigger_message, indent=4, sort_keys=True))
             except Exception as ex:
                 logging.error('JSON Decode Failure: %s' % ex)
@@ -177,7 +103,7 @@ class CSMessageProcessor:
         # triggering a cue or stack
         if 'stack' in trigger_message:
             logging.info('switching to cue stack: %s' % trigger_message['stack'])
-            actual_stack = self.find_stack(trigger_message['stack'])
+            actual_stack = find_stack(self.config, trigger_message['stack'])
             if actual_stack is not None:
                 self.current_cue_stack = actual_stack
                 # dont return yet
@@ -187,7 +113,7 @@ class CSMessageProcessor:
                 return {'status': 'Stack Not Found: %s' % trigger_message['stack']}
         if 'cue' in trigger_message:
             logging.debug('received trigger for cue: %s' % trigger_message['cue'])
-            actual_cue = self.find_cue(self.current_cue_stack, trigger_message['cue'])
+            actual_cue = find_cue(self.current_cue_stack, trigger_message['cue'])
             if actual_cue is not None:
                 if not self.start_cue_runner(actual_cue):
                     logging.error('failed to start cue runner')
@@ -207,6 +133,7 @@ class CSMessageProcessor:
             return False
 
     def run_cue_command(self, cue_part):
+        # this is used by the API only, normal cue execution is handled by a CueRunner
         if cue_part['target'] == 'internal':
             # an internal cue part can be used to call another trigger
             timestamp = str(datetime.now())
@@ -281,22 +208,22 @@ class CSMessageProcessor:
                     stackname = payload['stack']
                     want_replace = False
                     if 'copyFrom' in payload:
-                        if self.find_stack(payload['copyFrom']['stack']) is None:
+                        if find_stack(self.config, payload['copyFrom']['stack']) is None:
                             raise Exception('cannot find stack to copy from: %s' % payload['copyFrom']['stack'])
-                        if self.find_cue(self.find_stack(payload['copyFrom']['stack']), payload['copyFrom']['cue']) is None:
+                        if find_cue(find_stack(self.config, payload['copyFrom']['stack']), payload['copyFrom']['cue']) is None:
                             raise Exception('cannot find cue to copy from: %s in stack: %s' % (payload['copyFrom']['cue'], payload['copyFrom']['stack']))
                     if 'replace' in payload:
                         if payload['replace']:
                             want_replace = True
-                            if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is None:
+                            if find_cue(find_stack(self.config, stackname), payload['cue']['name']) is None:
                                 raise Exception('cannot find the cue trying to replace: stack: %s, cue: %s' % (stackname, payload['cue']['name']))
                         else:
-                            if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
+                            if find_cue(find_stack(self.config, stackname), payload['cue']['name']) is not None:
                                 raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
                     else:
-                        if self.find_cue(self.find_stack(stackname), payload['cue']['name']) is not None:
+                        if find_cue(find_stack(self.config, stackname), payload['cue']['name']) is not None:
                             raise Exception('Cue named %s already exists in stack %s' % (payload['cue']['name'], stackname))
-                    if self.find_stack(stackname) is None:
+                    if find_stack(self.config, stackname) is None:
                         logging.info('addCue is implicitly adding an empty stack: %s' % stackname)
                         self.config['stacks'].append(
                             {
@@ -304,14 +231,14 @@ class CSMessageProcessor:
                                 'cues': []
                             }
                         )
-                    stack_obj = self.find_stack(stackname)
+                    stack_obj = find_stack(self.config, stackname)
                     if 'copyFrom' in payload:
-                        from_stack = self.find_stack(payload['copyFrom']['stack'])
-                        from_cue = self.find_cue(from_stack, payload['copyFrom']['cue'])
+                        from_stack = find_stack(self.config, payload['copyFrom']['stack'])
+                        from_cue = find_cue(from_stack, payload['copyFrom']['cue'])
                         new_cue = copy.deepcopy(from_cue)
                         if want_replace:
                             logging.info('replacing cue %s in stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
-                            existing_cue = self.find_cue(stack_obj, payload['cue']['name'])
+                            existing_cue = find_cue(stack_obj, payload['cue']['name'])
                             existing_cue['parts'] = new_cue['parts']
                         else:
                             logging.info('adding new cue %s to stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
@@ -321,7 +248,7 @@ class CSMessageProcessor:
                     else:
                         if want_replace:
                             logging.info('replacing cue %s in stack %s' % (payload['cue']['name'], stackname))
-                            existing_cue = self.find_cue(stack_obj, payload['cue']['name'])
+                            existing_cue = find_cue(stack_obj, payload['cue']['name'])
                             existing_cue['parts'] = payload['cue']['parts']
                         else:
                             logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
@@ -332,10 +259,10 @@ class CSMessageProcessor:
                     response = {'status': 'Exception: %s' % ex}
             elif request == 'deleteCue':
                 try:
-                    if self.find_stack(payload['stack']) is not None:
-                        if self.find_cue(self.find_stack(payload['stack']), payload['cue']) is not None:
-                            stack = self.find_stack(payload['stack'])
-                            cue_index = self.find_cue_index(stack, payload['cue'])
+                    if find_stack(self.config, payload['stack']) is not None:
+                        if find_cue(find_stack(self.config, payload['stack']), payload['cue']) is not None:
+                            stack = find_stack(self.config, payload['stack'])
+                            cue_index = find_cue_index(stack, payload['cue'])
                             if cue_index is not None:
                                 logging.info('handling deleteCue for stack: %s, cue: %s' % (payload['stack'], payload['cue']))
                                 del stack['cues'][cue_index]
@@ -352,11 +279,11 @@ class CSMessageProcessor:
             elif request == 'addStack':
                 try:
                     stackname = payload['stack']
-                    if self.find_stack(stackname) is None:
+                    if find_stack(self.config, stackname) is None:
                         if 'copyFrom' in payload:
-                            if self.find_stack(payload['copyFrom']) is not None:
+                            if find_stack(self.config, payload['copyFrom']) is not None:
                                 logging.info('Adding a new stack: %s, copying from: %s' % (stackname, payload['copyFrom']))
-                                copy_from = self.find_stack(payload['copyFrom'])
+                                copy_from = find_stack(self.config, payload['copyFrom'])
                                 newstack = copy.deepcopy(copy_from)
                                 newstack['name'] = stackname
                                 self.config['stacks'].append(newstack)
@@ -380,9 +307,9 @@ class CSMessageProcessor:
                 try:
                     if self.current_cue_stack['name'] == payload['stack']:
                         raise Exception('Cannot delete the currently active stack: %s' % payload['stack'])
-                    if self.find_stack(payload['stack']) is not None:
+                    if find_stack(self.config, payload['stack']) is not None:
                         logging.info('handling deleteStack for stack: %s' % payload['stack'])
-                        stack_index = self.find_stack_index(payload['stack'])
+                        stack_index = find_stack_index(self.config, payload['stack'])
                         if stack_index is not None:
                             del self.config['stacks'][stack_index]
                         else:
@@ -397,10 +324,10 @@ class CSMessageProcessor:
                 try:
                     if self.current_cue_stack['name'] == payload['stack']:
                         raise Exception('Cannot rename the currently active stack: %s' % payload['stack'])
-                    if self.find_stack(payload['stack']) is not None:
-                        if self.find_stack(payload['new_name']) is None:
+                    if find_stack(self.config, payload['stack']) is not None:
+                        if find_stack(self.config, payload['new_name']) is None:
                             logging.info('handling renameStack for stack: %s to: %s' % (payload['stack'], payload['new_name']))
-                            stack = self.find_stack(payload['stack'])
+                            stack = find_stack(self.config, payload['stack'])
                             stack['name'] = payload['new_name']
                         else:
                             raise Exception('cannot rename because stack: %s already exists' % payload['new_name'])
@@ -412,7 +339,7 @@ class CSMessageProcessor:
                     response = {'status': 'Exception: %s' % ex}
             elif request == 'setDefaultStack':
                 try:
-                    if self.find_stack(payload) is not None:
+                    if find_stack(self.config, payload) is not None:
                         logging.info('setting default_stack to: %s' % payload)
                         self.config['default_stack'] = payload
                     else:
@@ -429,10 +356,10 @@ class CSMessageProcessor:
                     if 'cue' in payload:
                         cuename = payload['cue']['name']
                         stackname = payload['cue']['stack']
-                        if self.find_stack(stackname) is not None:
-                            if self.find_cue(self.find_stack(stackname), cuename) is not None:
+                        if find_stack(self.config, stackname) is not None:
+                            if find_cue(find_stack(self.config, stackname), cuename) is not None:
                                 logging.info('setting cue: %s in stack: %s, enabled: %s' % (cuename, stackname, enabled))
-                                self.find_cue(self.find_stack(stackname), cuename)['enabled'] = enabled
+                                find_cue(find_stack(self.config, stackname), cuename)['enabled'] = enabled
                             else:
                                 raise Exception('unable to find cue: %s in stack: %s' % (cuename, stackname))
                         else:
@@ -443,9 +370,9 @@ class CSMessageProcessor:
                         stackname = payload['part']['stack']
                         cuename = payload['part']['cue']
                         partno = payload['part']['part']
-                        if self.find_stack(stackname) is not None:
-                            if self.find_cue(self.find_stack(stackname), cuename) is not None:
-                                cue = self.find_cue(self.find_stack(stackname), cuename)
+                        if find_stack(self.config, stackname) is not None:
+                            if find_cue(find_stack(self.config, stackname), cuename) is not None:
+                                cue = find_cue(find_stack(self.config, stackname), cuename)
                                 if 1 <= partno < len(cue['parts']) + 1:
                                     if 'enabled' in cue['parts'][partno - 1]:
                                         if cue['parts'][partno - 1]['enabled'] == enabled:
@@ -464,14 +391,14 @@ class CSMessageProcessor:
                             raise Exception('unable to find stack: %s' % stackname)
                     elif 'target' in payload:
                         targetname = payload['target']['name']
-                        if self.find_target(targetname) is not None:
-                            if self.find_target(targetname)['enabled'] == enabled:
+                        if find_target(self.config, targetname) is not None:
+                            if find_target(self.config, targetname)['enabled'] == enabled:
                                 logging.info('command target: %s enabled is already %s' % (targetname, enabled))
                             else:
                                 logging.info('setting command target: %s, enabled: %s' % (targetname, enabled))
-                                self.find_target(targetname)['enabled'] = enabled
+                                find_target(self.config, targetname)['enabled'] = enabled
                                 if enabled:
-                                    self.setup_command_target(self.find_target(targetname))
+                                    self.setup_command_target(find_target(self.config, targetname))
                                 else:
                                     self.command_targets[targetname].terminate()
                                     self.command_targets[targetname].join()
@@ -481,12 +408,12 @@ class CSMessageProcessor:
                     elif 'trigger' in payload:
                         # TODO not implemented because it does not work with our current trigger source pattern
                         triggername = payload['trigger']['name']
-                        if self.find_trigger(triggername) is not None:
-                            if self.find_trigger(triggername)['enabled'] == enabled:
+                        if find_trigger(self.config, triggername) is not None:
+                            if find_trigger(self.config, triggername)['enabled'] == enabled:
                                 logging.info('trigger source: %s enabled is already %s' % (triggername, enabled))
                             else:
                                 logging.info('setting trigger source: %s, enabled: %s' % (triggername, enabled))
-                                self.find_trigger(triggername)['enabled'] = enabled
+                                find_trigger(self.config, triggername)['enabled'] = enabled
                                 if enabled:
                                     # TODO not implemented
                                     logging.debug('here is where i would call create_trigger_source but it wont work right now')
@@ -520,65 +447,6 @@ class CSMessageProcessor:
             logging.error(msg)
             response = {'status': msg}
         return response
-
-    def find_stack_index(self, stackname):
-        found_index = None
-        for i in range(0, len(self.config['stacks'])):
-            if self.config['stacks'][i]['name'] == stackname:
-                found_index = i
-                break
-        return found_index
-
-    def find_cue_index(self, stack, cuename):
-        found_index = None
-        for i in range(0, len(stack['cues'])):
-            if stack['cues'][i]['name'] == cuename:
-                found_index = i
-                break
-        return found_index
-
-    def find_trigger(self, triggername):
-        found_trigger = None
-        for trigger in self.config['trigger_sources']:
-            if trigger['name'] == triggername:
-                found_trigger = trigger
-                break
-        return found_trigger
-
-    def find_target(self, targetname):
-        found_target = None
-        for target in self.config['command_targets']:
-            if target['name'] == targetname:
-                found_target = target
-                break
-        return found_target
-
-    def find_stack(self, stackname):
-        found_stack = None
-        for stack in self.config['stacks']:
-            if stack['name'] == stackname:
-                found_stack = stack
-                break
-        return found_stack
-
-    def find_cue(self, stack, cuename):
-        found_cue = None
-        for cue in stack['cues']:
-            if cue['name'] == cuename:
-                found_cue = cue
-                break
-        return found_cue
-
-    def dict_raise_on_duplicates(self, ordered_pairs):
-        # reject duplicate keys. JSON decoder allows duplicate keys, but we do not
-        # this will cause a ValueError to be raised if a duplicate is found
-        d = {}
-        for k, v in ordered_pairs:
-            if k in d:
-                raise ValueError("duplicate key: %r" % (k,))
-            else:
-                d[k] = v
-        return d
 
     def setup_command_targets(self):
         # setup command targets based on config, populating command_targets
@@ -640,3 +508,95 @@ class CSMessageProcessor:
                 self.trigger_sources[this_source['name']] = self.trigger_map[this_source['type']](this_config_obj)
             else:
                 raise Exception('trigger source %s unknown type: %s' % (this_source['name'], this_source['type']))
+
+
+class CSCueRunner:
+    # manages the execution lifecycle of a cue
+    # this will run inside a thread, and possibly spawn its own children threads
+    # cue part timing is handled here, which is why it runs in a separate thread, to allow multiple cuerunners to execute at once without blocking eachother
+    def __init__(self, command_queues, command_targets_list, current_cue_stack, actual_cue):
+        self.command_queues = command_queues
+        self.command_targets_list = command_targets_list
+        self.current_cue_stack = current_cue_stack
+        self.cue = actual_cue
+        self.run_cue()
+
+    def run_cue(self):
+        actual_cue = self.cue
+        try:
+            if 'enabled' in actual_cue:
+                if not actual_cue['enabled']:
+                    logging.warning('silently ignoring disabled cue %s' % actual_cue['name'])
+                    return
+            num_parts = 0
+            total_parts = len(actual_cue['parts'])
+            logging.info('running cue: %s (%s parts)' % (actual_cue['name'], total_parts))
+            # first, build a list of cues with delay information defaulting to zero if missing
+            _staging_partlist = []
+            for cue_part in actual_cue['parts']:
+                _part_bundle = {'delay': 0, 'part': cue_part}
+                if 'delay' in cue_part:
+                    _part_bundle['delay'] = cue_part['delay']
+                _staging_partlist.append(_part_bundle)
+            # second, create another list, sorted by that delay
+            _sorted_partlist = sorted(_staging_partlist, key=lambda i: (i['delay']))
+            # third, modify the sorted list, adding absolute execution time
+            start_time = datetime.now() + timedelta(milliseconds=10)  # TODO start time is arbitrarily 10ms in the future, we will pare this down
+            for part_bundle in _sorted_partlist:
+                _abs_gotime = start_time + timedelta(milliseconds=part_bundle['delay'])
+                part_bundle['abs_gotime'] = _abs_gotime
+            # finally, execute each part, safe in the knowledge that we are running them in order, so we can wait for each abs_gotime to arrive
+            for part_bundle in _sorted_partlist:
+                go_time = part_bundle['abs_gotime']
+                cue_part = part_bundle['part']
+                num_parts += 1
+                if 'enabled' in cue_part:
+                    if not cue_part['enabled']:
+                        logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                        continue
+                now = datetime.now()
+                while go_time > now:
+                    time.sleep(0.01)
+                    now = datetime.now()
+                logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                try:
+                    self.run_cue_command(cue_part)
+                except Exception as ex:
+                    logging.error(ex)
+                    pass
+        except Exception as exe:
+            logging.error('unexpected exception while cue runner: %s' % exe)
+
+    def run_cue_command(self, cue_part):
+        if cue_part['target'] == 'internal':
+            # an internal cue part can be used to call another trigger
+            timestamp = str(datetime.now())
+            logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
+            self.handle_internal_target(cue_part['command'])
+        else:
+            if cue_part['target'] in self.command_targets_list:
+                timestamp = str(datetime.now())
+                logging.debug('%s adding a cue part to queue' % timestamp)
+                self.command_queues[cue_part['target']].put(cue_part['command'])
+            else:
+                raise Exception('no enabled command target exists to handle cue target: %s' % cue_part['target'])
+
+    def handle_internal_target(self, trigger_message):
+        # triggering a cue
+        if 'cue' in trigger_message:
+            logging.debug('received trigger for cue: %s' % trigger_message['cue'])
+            actual_cue = find_cue(self.current_cue_stack, trigger_message['cue'])
+            if actual_cue is not None:
+                if not self.start_subcue_runner(actual_cue):
+                    logging.error('failed to start sub cue runner')
+            else:
+                logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
+
+    def start_subcue_runner(self, actual_cue):
+        try:
+            cue_runner = Thread(target=CSCueRunner, args=(self.command_queues, self.command_targets_list, self.current_cue_stack, actual_cue))
+            cue_runner.start()
+            return True
+        except Exception as ex:
+            logging.exception('unexpected exception while starting subcue runner: %s' % ex)
+            return False

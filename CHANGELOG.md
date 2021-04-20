@@ -1,5 +1,6 @@
 0.1.2
-* 
+* WIP
+
 0.1.1
 * extend and reorg data api:
   - renamed: cues -> getCues, stacks -> getStacks, currentStack -> getCurrentStack

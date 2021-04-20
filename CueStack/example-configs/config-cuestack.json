@@ -562,6 +562,23 @@
               }
             }
           ]
+        },
+        {
+          "name": "test_subcues",
+          "parts": [
+            {
+              "target": "internal",
+              "command": {
+                "cue": "test_atem_macro_4"
+              }
+            },
+            {
+              "target": "internal",
+              "command": {
+                "cue": "test_visca_preset_2"
+              }
+            }
+          ]
         }
       ]
     },

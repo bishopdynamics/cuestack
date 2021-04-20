@@ -24,51 +24,55 @@ from multiprocessing import Process, Queue
 
 from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CSTriggerGenericMQTT
 from CSCommandTargets import CSTargetOBS, CSTargetGenericOSC, CSTargetGenericTCP, CSTargetGenericUDP, CSTargetGenericHTTP, CSTargetGenericWebsocket, CSTargetGenericMQTT
+from CSLogger import get_mplogger
 
 
 class CSCueRunner:
-    def __init__(self, command_queues, command_targets_list, actual_cue):
+    # TODO this reimplements a bunch of methods from message processor, this could be better
+    def __init__(self, command_queues, command_targets_list, current_cue_stack, log_level, actual_cue):
         self.command_queues = command_queues
         self.command_targets_list = command_targets_list
+        self.current_cue_stack = current_cue_stack
+        self.log_level = log_level
+        self.logger = get_mplogger(name='CSCueRunner', level=self.log_level)
+        self.logger.debug('initializing CSCueRunner')
         self.cue = actual_cue
         self.run_cue()
+        self.logger.debug('CSCueRunner is complete')
 
     def run_cue(self):
         actual_cue = self.cue
         try:
-            logging.debug('a cue runner started')
+            self.logger.debug('a cue runner started')
             if 'enabled' in actual_cue:
                 if not actual_cue['enabled']:
-                    logging.warning('silently ignoring disabled cue %s' % actual_cue['name'])
+                    self.logger.warning('silently ignoring disabled cue %s' % actual_cue['name'])
                     return
             num_parts = 0
             total_parts = len(actual_cue['parts'])
-            logging.debug('running cue: %s' % actual_cue['name'])
+            self.logger.debug('running cue: %s' % actual_cue['name'])
             for cue_part in actual_cue['parts']:
                 num_parts += 1
                 if 'enabled' in cue_part:
                     if not cue_part['enabled']:
-                        logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                        self.logger.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
                         continue
-                logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                self.logger.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
                 try:
                     self.run_cue_command(cue_part)
                 except Exception as ex:
-                    logging.error(ex)
+                    self.logger.error(ex)
                     pass
         except Exception as exe:
-            logging.error('unexpected exception while cue runner: %s' % exe)
-        logging.debug('a cue runner completed')
+            self.logger.error('unexpected exception while cue runner: %s' % exe)
+        self.logger.debug('a cue runner completed')
 
     def run_cue_command(self, cue_part):
         if cue_part['target'] == 'internal':
-            return
-            # TODO - need a different way to handle internal cues
             # an internal cue part can be used to call another trigger
-            # timestamp = str(datetime.now())
-            # logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
-            # tempstring = json.dumps(cue_part['command'])
-            # self.handle(tempstring)
+            timestamp = str(datetime.now())
+            logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
+            self.handle_api_cuestack(cue_part['command'])
         else:
             if cue_part['target'] in self.command_targets_list:
                 timestamp = str(datetime.now())
@@ -76,6 +80,34 @@ class CSCueRunner:
                 self.command_queues[cue_part['target']].put(cue_part['command'])
             else:
                 raise Exception('no enabled command target exists to handle cue target: %s' % cue_part['target'])
+
+    def handle_api_cuestack(self, trigger_message):
+        # triggering a cue
+        if 'cue' in trigger_message:
+            logging.debug('received trigger for cue: %s' % trigger_message['cue'])
+            actual_cue = self.find_cue(self.current_cue_stack, trigger_message['cue'])
+            if actual_cue is not None:
+                if not self.start_subcue_runner(actual_cue):
+                    logging.error('failed to start sub cue runner')
+            else:
+                logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
+
+    def start_subcue_runner(self, actual_cue):
+        try:
+            cue_runner = Process(target=CSCueRunner, args=(self.command_queues, self.command_targets_list, self.current_cue_stack, self.log_level, actual_cue))
+            cue_runner.start()
+            return True
+        except Exception as ex:
+            logging.exception('unexpected exception while starting subcue runner: %s' % ex)
+            return False
+
+    def find_cue(self, stack, cuename):
+        found_cue = None
+        for cue in stack['cues']:
+            if cue['name'] == cuename:
+                found_cue = cue
+                break
+        return found_cue
 
 
 class CSMessageProcessor:
@@ -172,8 +204,7 @@ class CSMessageProcessor:
 
     def start_cue_runner(self, actual_cue):
         try:
-            cue_runner = Process(target=CSCueRunner, args=(self.command_queues, self.command_targets_list, actual_cue))
-            cue_runner.daemon = True
+            cue_runner = Process(target=CSCueRunner, args=(self.command_queues, self.command_targets_list, self.current_cue_stack, self.log_level, actual_cue))
             cue_runner.start()
             return True
         except Exception as ex:

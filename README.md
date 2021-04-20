@@ -30,7 +30,7 @@ You may need to install [Visual C++ Redist 2015](https://www.microsoft.com/en-us
 ## Running from source on Windows
 
 Each tool has `setup.bat` and `run.bat`, they can be used to manually setup and run that tool from within the source tree. 
-This is intended only for development, please use the prebuilt binaries. VoicemeeterAgent lives within the Cuestack folder, and shares `setup.bat` with CueStack but has its own separate run script: `run-voicemeeteragent.bat`.
+This is intended only for development, please use the prebuilt binaries. VoicemeeterAgent and ATEMAgent live within the Cuestack folder, and share `setup.bat` with CueStack but have their own separate run script: `run-voicemeeteragent.bat` and `run-atemagent.bat`.
 ViscaAgent is not supported on Windows.
 
 ## Usage on Linux and macOS

@@ -36,7 +36,7 @@ Notes:
 * Part - a single command to send
 * Cue Stack - a set of cues representing a specific state of the production
 * Trigger - an external stimulus calling a cue by name
-* Trigger Source = the thing sending a trigger, you can have many of these
+* Trigger Source - the thing sending a trigger, you can have many of these
 * Command - something to trigger, like sending a websocket command to OBS
 * Command Target - the thing receiving a command, you can have many of these
 

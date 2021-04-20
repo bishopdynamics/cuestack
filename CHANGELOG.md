@@ -1,5 +1,7 @@
 0.1.2
-* WIP
+* CueStack 
+  - move execution of cues to CueRunner, each in a separate thread
+  - implement `delay` for cue parts, milliseconds from start of cue to delay this part. parts without `delay` will default to zero (everything executes at the same time)
 
 0.1.1
 * extend and reorg data api endpoints:

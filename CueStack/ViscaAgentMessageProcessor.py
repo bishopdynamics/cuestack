@@ -47,11 +47,6 @@ class ViscaAgentMessageProcessor:
         self.command_queue = Queue()
         try:
             self.setup_command_sources()
-            if 'device_id' in self.config:
-                self.device_id = self.config['device_id']
-            else:
-                self.device_id = 1
-            logging.info('This device_id is: %s' % self.device_id)
             self.serial_port = self.config['serial_port']
             logging.info('starting ViscaControl on serial port: %s' % self.serial_port)
             self.v = ViscaControl(portname=self.serial_port)
@@ -80,16 +75,13 @@ class ViscaAgentMessageProcessor:
                 logging.error('JSON Decode Failure: %s' % ex)
                 return {'status': 'JSON Decode Failure: %s' % ex}
             if 'visca' in command_message:
-                if command_message['visca']['args']['device'] == self.device_id:
-                    try:
-                        result = self.send_command(command_message['visca'])
-                        logging.debug('result of command: %s' % result)
-                    except Exception as ex:
-                        logging.error('exception while handling visca command: %s' % ex)
-                        return {'status': 'Exception while handling visca command: %s' % ex}
-                    return {'status': 'OK'}
-                else:
-                    logging.debug('ignoring message for other device id: %s' % command_message['visca']['args']['device'])
+                try:
+                    result = self.send_command(command_message['visca'])
+                    logging.debug('result of command: %s' % result)
+                except Exception as ex:
+                    logging.error('exception while handling visca command: %s' % ex)
+                    return {'status': 'Exception while handling visca command: %s' % ex}
+                return {'status': 'OK'}
             else:
                 return {'status': 'Error: missing a supported command key'}
         except Exception as e:

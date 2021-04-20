@@ -1,6 +1,5 @@
 {
   "serial_port": "/dev/ttyUSB0",
-  "device_id": 1,
   "command_sources": [
     {
       "enabled": true,

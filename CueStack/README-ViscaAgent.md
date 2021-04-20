@@ -15,7 +15,6 @@ Visca Agent has its own config file, which is pretty straightforward:
 ```json
 {
   "serial_port": "/dev/serial/by-id/usb-Twiga_TWIGACam-if03-port0",
-  "device_id": 1,
   "command_sources": [
     {
       "enabled": true,

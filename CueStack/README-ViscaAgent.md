@@ -52,7 +52,7 @@ And a cue part in CueStack looks like this:
             {
               "target": "visca-agent",
               "command": {
-                "message": "{\"visca\": {\"request\": \"cmd_cam_zoom_tele_speed\", \"args\": {\"device\": 1, \"speed\": 4}}"
+                "message": "{\"visca\": {\"request\": \"cmd_cam_memory_recall\", \"args\": {\"device\": 1, \"num\": 2}}"
               }
             }
 ```
@@ -66,10 +66,10 @@ You can also send a message as a dict, to avoid having to escape quotes with a s
                 "message_type": "dict",
                 "message": {
                   "visca": {
-                    "request": "cmd_cam_zoom_tele_speed",
+                    "request": "cmd_cam_memory_recall",
                     "args": {
                       "device": 1,
-                      "speed": 4
+                      "num": 2
                     }
                   }
                 }

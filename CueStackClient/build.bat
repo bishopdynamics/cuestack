@@ -8,7 +8,19 @@ echo Removing previous build
 rmdir /S /Q "%CWD%\dist"
 mkdir "%CWD%\dist"
 
-py -m nuitka --mingw64 --onefile --plugin-enable=pylint-warnings --windows-onefile-tempdir --include-data-file=../VERSION=VERSION --include-data-file=../BUILD=BUILD --include-data-file=style.css=style.css --include-data-file=js=js  --include-data-file=index.html=index.html CueStackClient.py
+py -m nuitka --mingw64 --onefile^
+ --plugin-enable=pylint-warnings^
+ --windows-onefile-tempdir^
+ --include-data-file=../VERSION=VERSION^
+ --include-data-file=../BUILD=BUILD^
+ --include-data-file=style.css=style.css^
+ --include-data-file=javascript.js=javascript.js^
+ --include-data-file=templates.js=templates.js^
+ --include-data-file=reconnecting-websocket.js=reconnecting-websocket.js^
+ --include-data-file=jquery-3.3.1.slim.min.js=jquery-3.3.1.slim.min.js^
+ --include-data-file=jquery.json-editor.min.js=jquery.json-editor.min.js^
+ --include-data-file=index.html=index.html^
+ CueStackClient.py
 move CueStackClient.exe "%CWD%\dist\"
 rmdir /S /Q CueStackClient.build
 rmdir /S /Q CueStackClient.dist

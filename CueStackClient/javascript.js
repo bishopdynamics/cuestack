@@ -410,7 +410,7 @@ function Setup() {
     console.log('setting up...')
     ClickTab("tester");
     GetStatus();
-    TestThing();
+//    TestThing();
     // setInterval(GetStatus, 4000)
 }
 

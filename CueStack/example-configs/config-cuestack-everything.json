@@ -610,7 +610,7 @@
   ],
   "command_targets": [
     {
-      "enabled": false,
+      "enabled": true,
       "name": "obs",
       "type": "obs_websocket",
       "config": {
@@ -647,7 +647,7 @@
       }
     },
     {
-      "enabled": true,
+      "enabled": false,
       "name": "http-example",
       "type": "http_generic",
       "config": {
@@ -674,16 +674,16 @@
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "voicemeeter",
       "type": "websocket_generic",
       "config": {
-        "host": "192.168.1.74",
+        "host": "localhost",
         "port": 9901
       }
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "visca_1",
       "type": "websocket_generic",
       "config": {
@@ -696,8 +696,8 @@
       "name": "atem_1",
       "type": "websocket_generic",
       "config": {
-        "host": "192.168.1.74",
-        "port": 9901
+        "host": "localhost",
+        "port": 9701
       }
     }
   ],

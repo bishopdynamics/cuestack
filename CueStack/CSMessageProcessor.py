@@ -26,9 +26,62 @@ from CSTriggerSources import CSTriggerGenericWebsocket, CSTriggerGenericHTTP, CS
 from CSCommandTargets import CSTargetOBS, CSTargetGenericOSC, CSTargetGenericTCP, CSTargetGenericUDP, CSTargetGenericHTTP, CSTargetGenericWebsocket, CSTargetGenericMQTT
 
 
+class CSCueRunner:
+    def __init__(self, command_queues, command_targets_list, actual_cue):
+        self.command_queues = command_queues
+        self.command_targets_list = command_targets_list
+        self.cue = actual_cue
+        self.run_cue()
+
+    def run_cue(self):
+        actual_cue = self.cue
+        try:
+            logging.debug('a cue runner started')
+            if 'enabled' in actual_cue:
+                if not actual_cue['enabled']:
+                    logging.warning('silently ignoring disabled cue %s' % actual_cue['name'])
+                    return
+            num_parts = 0
+            total_parts = len(actual_cue['parts'])
+            logging.debug('running cue: %s' % actual_cue['name'])
+            for cue_part in actual_cue['parts']:
+                num_parts += 1
+                if 'enabled' in cue_part:
+                    if not cue_part['enabled']:
+                        logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                        continue
+                logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
+                try:
+                    self.run_cue_command(cue_part)
+                except Exception as ex:
+                    logging.error(ex)
+                    pass
+        except Exception as exe:
+            logging.error('unexpected exception while cue runner: %s' % exe)
+        logging.debug('a cue runner completed')
+
+    def run_cue_command(self, cue_part):
+        if cue_part['target'] == 'internal':
+            return
+            # TODO - need a different way to handle internal cues
+            # an internal cue part can be used to call another trigger
+            # timestamp = str(datetime.now())
+            # logging.info('%s Sending an internal trigger: %s' % (timestamp, cue_part['command']))
+            # tempstring = json.dumps(cue_part['command'])
+            # self.handle(tempstring)
+        else:
+            if cue_part['target'] in self.command_targets_list:
+                timestamp = str(datetime.now())
+                logging.debug('%s executing a part' % timestamp)
+                self.command_queues[cue_part['target']].put(cue_part['command'])
+            else:
+                raise Exception('no enabled command target exists to handle cue target: %s' % cue_part['target'])
+
+
 class CSMessageProcessor:
     trigger_sources = {}  # objects managing a connection to a trigger source live here
     command_targets = {}  # holds the processes (multithreading) that handle sending command target messages
+    command_targets_list = []  # holds the NAMES of command targets as a list, nothing else
     command_queues = {}  # holds the queues for pushing messages to the process which sends them
     trigger_queue = None  # trigger sources place received messages in this queue, which the message processor then pulls from
     target_map = {  # this maps command target types to the corresponding class
@@ -109,32 +162,23 @@ class CSMessageProcessor:
             logging.debug('received trigger for cue: %s' % trigger_message['cue'])
             actual_cue = self.find_cue(self.current_cue_stack, trigger_message['cue'])
             if actual_cue is not None:
-                self.run_cue(actual_cue)
+                if not self.start_cue_runner(actual_cue):
+                    logging.error('failed to start cue runner')
+                    return {'status': 'failed to start cue runner'}
             else:
                 logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
                 return {'status': 'Cue Not Found: %s' % trigger_message['cue']}
         return {'status': 'OK'}
 
-    def run_cue(self, actual_cue):
-        if 'enabled' in actual_cue:
-            if not actual_cue['enabled']:
-                logging.warning('silently ignoring disabled cue %s' % actual_cue['name'])
-                return
-        num_parts = 0
-        total_parts = len(actual_cue['parts'])
-        logging.debug('running cue: %s' % actual_cue['name'])
-        for cue_part in actual_cue['parts']:
-            num_parts += 1
-            if 'enabled' in cue_part:
-                if not cue_part['enabled']:
-                    logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-                    continue
-            logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
-            try:
-                self.run_cue_command(cue_part)
-            except Exception as ex:
-                logging.error(ex)
-                pass
+    def start_cue_runner(self, actual_cue):
+        try:
+            cue_runner = Process(target=CSCueRunner, args=(self.command_queues, self.command_targets_list, actual_cue))
+            cue_runner.daemon = True
+            cue_runner.start()
+            return True
+        except Exception as ex:
+            logging.exception('unexpected exception while starting cue runner: %s' % ex)
+            return False
 
     def run_cue_command(self, cue_part):
         if cue_part['target'] == 'internal':
@@ -535,7 +579,9 @@ class CSMessageProcessor:
                     'log_level': self.log_level  # passing log level to target so it can act accordingly
                 }
                 self.command_targets[this_target['name']] = Process(target=self.target_map[this_target['type']], args=(this_config_obj,))
+                self.command_targets[this_target['name']].daemon = True
                 self.command_targets[this_target['name']].start()
+                self.command_targets_list.append(this_target['name'])
             else:
                 raise Exception('command target %s unknown type: %s' % (this_target['name'], this_target['type']))
 

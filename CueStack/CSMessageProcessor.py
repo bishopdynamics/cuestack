@@ -554,10 +554,8 @@ class CSCueRunner:
                     if not cue_part['enabled']:
                         logging.warning('ignoring disabled cue part: %s part %s/%s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
                         continue
-                now = datetime.now()
-                while go_time > now:
-                    time.sleep(0.01)
-                    now = datetime.now()
+                while go_time > datetime.now():
+                    time.sleep(0.001)  # we check every 1ms to see if gotime has passed
                 logging.info('running cue: %s, part: %s of %s, target: %s, command: %s' % (actual_cue['name'], num_parts, total_parts, cue_part['target'], json.dumps(cue_part['command'])))
                 try:
                     self.run_cue_command(cue_part)

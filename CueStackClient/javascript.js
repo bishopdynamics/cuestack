@@ -12,6 +12,8 @@ WEBSOCKET_PORT = 8081;
 
 TABS_LIST = ['tester', 'managestacks', 'editcues', 'edittargets', 'edittriggers'];
 
+API = new APIManager(WEBSOCKET_HOST, WEBSOCKET_PORT, handleMessage);
+
 function handleMessage(message) {
   if ('status' in message) {
     if (message.status == 'OK') {
@@ -35,8 +37,6 @@ function handleMessage(message) {
     console.error('api error: bad message format');
   }
 }
-
-API = new APIManager(WEBSOCKET_HOST, WEBSOCKET_PORT, handleMessage);
 
 function createCuesTable(data) {
   const table = document.querySelector('#cues-table');
@@ -106,54 +106,6 @@ function hideAllTabs() {
 function clickTab(tabname) {
   hideAllTabs();
   showTab(tabname);
-}
-
-/**
- * create a form that can be flipped to a json editor
- * @param  {any} value
- * @return {Element}
- */
-function createFlippableInputForm(value) {
-  const input = document.createElement('div');
-  const inputview = document.createElement('table');
-  const editorview = document.createElement('pre'); // editor docs say use a pre
-  const editbutton = document.createElement('button');
-  const returnbutton = document.createElement('button');
-  for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
-      const subinput = renderGeneric(key, value[key]);
-      inputview.appendChild(subinput);
-    }
-  }
-  editorview.classList.add('form-node-input');
-  editor = new JsonEditor(editorview, value);
-  inputview.style.display = 'block';
-  editorview.style.display = 'none';
-  editbutton.style.display = 'block';
-  editbutton.innerHTML = 'Edit';
-  returnbutton.style.display = 'none';
-  returnbutton.innerHTML = 'Return';
-  editbutton.addEventListener('click', function() {
-    inputview.style.display = 'none';
-    editorview.style.display = 'block';
-    returnbutton.style.display = 'block';
-    editbutton.style.display = 'none';
-  });
-  returnbutton.addEventListener('click', function() {
-    inputview.style.display = 'block';
-    editorview.style.display = 'none';
-    returnbutton.style.display = 'none';
-    editbutton.style.display = 'block';
-  });
-  editbutton.style.width = '60px';
-  editbutton.style.height = '20px';
-  returnbutton.style.width = '60px';
-  returnbutton.style.height = '20px';
-  input.appendChild(editbutton);
-  input.appendChild(returnbutton);
-  input.appendChild(inputview);
-  input.appendChild(editorview);
-  return input;
 }
 
 function testThing() {

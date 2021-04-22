@@ -14,6 +14,9 @@ py -m nuitka --mingw64 --onefile^
  --include-data-file=../VERSION=VERSION^
  --include-data-file=../BUILD=BUILD^
  --include-data-file=style.css=style.css^
+ --include-data-file=api.js=api.js^
+ --include-data-file=util.js=util.js^
+ --include-data-file=gui.js=gui.js^
  --include-data-file=javascript.js=javascript.js^
  --include-data-file=templates.js=templates.js^
  --include-data-file=reconnecting-websocket.js=reconnecting-websocket.js^

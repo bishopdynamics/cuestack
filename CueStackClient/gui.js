@@ -221,10 +221,15 @@ function createFlippableInputForm(dataobject) {
     editorview.style.display = 'block';
     returnbutton.style.display = 'block';
     editbutton.style.display = 'none';
-    inputview.innerHTML = '';
   });
   returnbutton.addEventListener('click', function() {
-    const newjson = editor.get();
+    let newjson = null;
+    try {
+      newjson = editor.get();
+    } catch (e) {
+      alert(e);
+      return;
+    }
     const newdatatree = buildDataTree(newjson);
     console.log('json: ', newjson);
     console.log('datatree: ', newdatatree);
@@ -235,9 +240,14 @@ function createFlippableInputForm(dataobject) {
     editorview.style.display = 'none';
     returnbutton.style.display = 'none';
     editbutton.style.display = 'block';
-    delete(editor);
-    editorview.innerHTML = '';
   });
+  container.getValue = function() {
+    const newobject = objectFromDatatree(datatree);
+    editor = new JsonEditor(editorview, newobject);
+    dataobject = newobject;
+    const currentjson = editor.get();
+    return currentjson;
+  };
   editbutton.style.width = '60px';
   editbutton.style.height = '20px';
   returnbutton.style.width = '60px';

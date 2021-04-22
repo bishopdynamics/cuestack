@@ -108,15 +108,16 @@ function clickTab(tabname) {
   showTab(tabname);
 }
 
+
 function testThing() {
   clickTab('edittargets');
   console.info('running testThing');
   try {
     // CueStackTemplates.trigger_sources.mqtt
     // CueStackTemplates.command_targets.mqtt_generic
-    const thisobject = createFlippableInputForm(CueStackTemplates.cue_parts.voicemeeter);
+    const thisobj = createFlippableInputForm(CueStackTemplates.command_targets.mqtt_generic);
     const tab = document.getElementById('tab-edittargets');
-    tab.appendChild(thisobject);
+    tab.appendChild(thisobj);
   } catch (e) {
     console.error('exception in testThing: ' + e);
   }

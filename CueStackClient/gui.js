@@ -29,7 +29,7 @@ function createLabel(name) {
 function createCheckbox(value) {
   const input = document.createElement('input');
   input.setAttribute('type', 'checkbox');
-  input.setAttribute('checked', value);
+  input.checked = value;
   input.classList.add('form-node-input');
   return input;
 }
@@ -43,7 +43,7 @@ function createCheckbox(value) {
 function createNumberInput(value) {
   const input = document.createElement('input');
   input.setAttribute('type', 'number');
-  input.setAttribute('value', value);
+  input.value = value;
   input.classList.add('form-node-input');
   return input;
 }
@@ -61,47 +61,6 @@ function createTextInput(value) {
   input.classList.add('form-node-input');
   return input;
 }
-
-// /**
-//  * create a table row with two divs, containing name and an input element matching the type of value
-//  * @param  {string} name
-//  * @param  {any} value
-//  * @return {Element} a table row
-//  */
-// function renderGeneric(name, value) {
-//   const obj = document.createElement('tr');
-//   try {
-//     const label = createLabel(name);
-//     const tdlabel = document.createElement('td');
-//     tdlabel.classList.add('input_table_td_label');
-//     tdlabel.appendChild(label);
-//     obj.appendChild(tdlabel);
-//     const tdinput = document.createElement('td');
-//     let input = null;
-//     if (typeof value == 'boolean') {
-//       input = createCheckbox(value);
-//     } else if (typeof value == 'number') {
-//       input = createNumberInput(value);
-//     } else if (typeof value == 'string') {
-//       input = createTextInput(value);
-//     } else if (typeof value == 'object') {
-//       input = document.createElement('table');
-//       for (const key in value) {
-//         if (Object.prototype.hasOwnProperty.call(value, key)) {
-//           const subinput = renderGeneric(key, value[key]);
-//           input.appendChild(subinput);
-//         }
-//       }
-//       input.style.border = '1px dashed';
-//     }
-//     tdinput.appendChild(input);
-//     obj.appendChild(tdinput);
-//     obj.classList.add('input_table_row');
-//   } catch (e) {
-//     console.error('exception while renderGeneric: ' + e);
-//   }
-//   return obj;
-// }
 
 /**
  * given a datatree populated with input elements, build the actual table
@@ -138,18 +97,18 @@ function renderDataTree(datatree) {
 
 /**
  * create a tree of input elements based on the values of keys in an object
- * @param  {object} object the object to base it on
+ * @param  {object} inputobject the object to base it on
  * @param  {object} datatree optional existing datatree to add things to, used for recursion
  * @return {Element} a table row
  */
-function buildDataTree(object, datatree = null) {
+function buildDataTree(inputobject, datatree = null) {
   if (datatree === null) {
-    datatree = JSON.parse(JSON.stringify(object)); // making a deep copy so we can change it independently
+    datatree = JSON.parse(JSON.stringify(inputobject)); // making a deep copy so we can change it independently
   }
   try {
-    for (const key in object) {
-      if (Object.prototype.hasOwnProperty.call(object, key)) {
-        const value = object[key];
+    for (const key in inputobject) {
+      if (Object.prototype.hasOwnProperty.call(inputobject, key)) {
+        const value = inputobject[key];
         let input = null;
         if (typeof value == 'boolean') {
           input = createCheckbox(value);
@@ -174,28 +133,33 @@ function buildDataTree(object, datatree = null) {
 /**
  * update an the given object's values from the input elements in the datatree
  * datatree and object must have the exact same structure
- * @param  {object} object the object to update values
- * @param  {object} datatree the tree holding input elements
+ * @param  {object} inputdatatree the tree holding input elements
+ * @param  {object} _object optional existing object to build upon, used for recursion
  * @return {object} object with updated values
  */
-function updateObjectFromDatatree(object, datatree) {
+function objectFromDatatree(inputdatatree, _object = null) {
+  let object = _object;
+  if (object == null) {
+    object = {};
+  }
   const table = document.createElement('table');
   try {
-    for (const key in datatree) {
-      if (Object.prototype.hasOwnProperty.call(datatree, key)) {
-        if (datatree[key] instanceof Element) {
-          if (datatree[key].type == 'checkbox') {
+    for (const key in inputdatatree) {
+      if (Object.prototype.hasOwnProperty.call(inputdatatree, key)) {
+        if (inputdatatree[key] instanceof Element) {
+          if (inputdatatree[key].type == 'checkbox') {
             // this is a checkbox
-            object[key] = datatree[key].checked;
-          } else if (datatree[key].type == 'number') {
+            object[key] = inputdatatree[key].checked;
+          } else if (inputdatatree[key].type == 'number') {
             // this is a number input
-            object[key] = Number(datatree[key].value);
+            object[key] = Number(inputdatatree[key].value);
           } else {
             // hopefully this is an input element that has a value property
-            object[key] = datatree[key].value;
+            object[key] = inputdatatree[key].value;
           }
         } else {
-          updateObjectFromDatatree(object[key], datatree[key]);
+          object[key] = {};
+          objectFromDatatree(inputdatatree[key], object[key]);
         }
       }
     }
@@ -231,19 +195,18 @@ function renderSelect(options, value) {
 
 /**
  * create a form that can be flipped to a json editor
- * @param  {any} object
+ * @param  {any} dataobject
  * @return {Element}
  */
-function createFlippableInputForm(object) {
+function createFlippableInputForm(dataobject) {
   const container = document.createElement('div');
-  // const inputview = document.createElement('table');
   const editorview = document.createElement('pre'); // editor docs say use a pre
+  editorview.classList.add('form-node-input');
   const editbutton = document.createElement('button');
   const returnbutton = document.createElement('button');
-  let datatree = buildDataTree(object);
+  let datatree = buildDataTree(dataobject);
   let inputview = renderDataTree(datatree);
-  editorview.classList.add('form-node-input');
-  let editor = new JsonEditor(editorview, object);
+  let editor = new JsonEditor(editorview, dataobject);
   inputview.style.display = 'block';
   editorview.style.display = 'none';
   editbutton.style.display = 'block';
@@ -251,27 +214,29 @@ function createFlippableInputForm(object) {
   returnbutton.style.display = 'none';
   returnbutton.innerHTML = 'Return';
   editbutton.addEventListener('click', function() {
-    const newobject = updateObjectFromDatatree(object, datatree);
-    editorview.innerHTML = '';
+    const newobject = objectFromDatatree(datatree);
     editor = new JsonEditor(editorview, newobject);
-    object = newobject;
+    dataobject = newobject;
     inputview.style.display = 'none';
-    delete(inputview);
     editorview.style.display = 'block';
     returnbutton.style.display = 'block';
     editbutton.style.display = 'none';
+    inputview.innerHTML = '';
   });
   returnbutton.addEventListener('click', function() {
-    const newdatatree = buildDataTree(editor.get());
+    const newjson = editor.get();
+    const newdatatree = buildDataTree(newjson);
+    console.log('json: ', newjson);
+    console.log('datatree: ', newdatatree);
     inputview = renderDataTree(newdatatree);
-    // inputview.parentElement.replaceChild(newinputview, inputview);
-    // inputview = newinputview;
     container.appendChild(inputview);
     datatree = newdatatree;
     inputview.style.display = 'block';
     editorview.style.display = 'none';
     returnbutton.style.display = 'none';
     editbutton.style.display = 'block';
+    delete(editor);
+    editorview.innerHTML = '';
   });
   editbutton.style.width = '60px';
   editbutton.style.height = '20px';

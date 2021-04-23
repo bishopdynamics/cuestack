@@ -153,53 +153,55 @@ class CSMessageProcessor:
         try:
             request = trigger_message['request']
             payload = {}
+            request_id = 0  # a zero request id means none was provided
             if 'request_payload' in trigger_message:
                 payload = trigger_message['request_payload']
-
+            if 'request_id' in trigger_message:
+                request_id = trigger_message['request_id']
             if request == 'getCues':
                 cuelist = []
                 for cue in self.current_cue_stack['cues']:
                     cuelist.append(cue['name'])
-                response = {'status': 'OK', 'response': {'cues': cuelist}}
+                response = {'status': 'OK', 'request_id': request_id, 'response': {'cues': cuelist}}
             elif request == 'getStacks':
                 stacklist = []
                 for stack in self.config['stacks']:
                     stacklist.append(stack['name'])
-                response = {'status': 'OK', 'response': {'stacks': stacklist}}
+                response = {'status': 'OK', 'request_id': request_id, 'response': {'stacks': stacklist}}
             elif request == 'getConfig':
                 logging.debug('handling request getConfig')
-                response = {'status': 'OK', 'response': {'config': self.config}}
+                response = {'status': 'OK', 'request_id': request_id, 'response': {'config': self.config}}
             elif request == 'getCurrentStack':
                 logging.debug('handling request currentStack')
-                response = {'status': 'OK', 'response': {'currentStack': self.current_cue_stack['name']}}
+                response = {'status': 'OK', 'request_id': request_id, 'response': {'currentStack': self.current_cue_stack['name']}}
             elif request == 'getTriggerSources':
                 sourcelist = []
                 for src in self.trigger_sources:
                     sourcelist.append(src)
-                response = {'status': 'OK', 'response': {'triggerSources': sourcelist}}
+                response = {'status': 'OK', 'request_id': request_id, 'response': {'triggerSources': sourcelist}}
             elif request == 'getCommandTargets':
                 targetlist = []
                 for target in self.command_targets:
                     targetlist.append(target)
-                response = {'status': 'OK', 'response': {'commandTargets': targetlist}}
+                response = {'status': 'OK', 'request_id': request_id, 'response': {'commandTargets': targetlist}}
             elif request == 'addTarget':
                 try:
                     logging.info('adding new command target from api->request->addTarget: %s' % payload)
                     self.setup_command_target(payload)
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('addTarget failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'addTrigger':
                 try:
                     # TODO disabled because it does not work with our current trigger source pattern
                     logging.info('adding new trigger source from api->request->addTrigger: %s' % payload)
                     raise Exception('api->request->addTrigger not implemented')
                     # self.setup_trigger_source(payload)
-                    # response = {'status': 'OK'}
+                    # response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('addTrigger failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'addCue':
                 # add a new cue to a stack, or copy a cue, or replace a cue
                 # replace effectively allows you to update a cue.
@@ -244,7 +246,7 @@ class CSMessageProcessor:
                             logging.info('adding new cue %s to stack %s, copying from: stack: %s, cue: %s' % (payload['cue']['name'], stackname, payload['copyFrom']['stack'], payload['copyFrom']['cue']))
                             new_cue['name'] = payload['cue']['name']
                             stack_obj['cues'].append(new_cue)
-                        response = {'status': 'OK'}
+                        response = {'status': 'OK', 'request_id': request_id}
                     else:
                         if want_replace:
                             logging.info('replacing cue %s in stack %s' % (payload['cue']['name'], stackname))
@@ -253,10 +255,10 @@ class CSMessageProcessor:
                         else:
                             logging.info('adding new cue %s to stack %s' % (payload['cue']['name'], stackname))
                             stack_obj['cues'].append(payload['cue'])
-                        response = {'status': 'OK'}
+                        response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('addCue failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'deleteCue':
                 try:
                     if find_stack(self.config, payload['stack']) is not None:
@@ -272,10 +274,10 @@ class CSMessageProcessor:
                             raise Exception('unable to find cue to delete: stack: %s, cue: %s' % (payload['stack'], payload['cue']))
                     else:
                         raise Exception('unable to find find stack trying to delete cue from: stack: %s' % payload['stack'])
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('deleteCue failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'addStack':
                 try:
                     stackname = payload['stack']
@@ -299,10 +301,10 @@ class CSMessageProcessor:
                             )
                     else:
                         raise Exception('Stack named %s already exists' % stackname)
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('addStack failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'deleteStack':
                 try:
                     if self.current_cue_stack['name'] == payload['stack']:
@@ -316,10 +318,10 @@ class CSMessageProcessor:
                             raise Exception('deleteStack failed to find index of stack in list')
                     else:
                         raise Exception('unable to delete stack, cannot find it: %s' % payload['stack'])
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('deleteStack failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'renameStack':
                 try:
                     if self.current_cue_stack['name'] == payload['stack']:
@@ -333,10 +335,10 @@ class CSMessageProcessor:
                             raise Exception('cannot rename because stack: %s already exists' % payload['new_name'])
                     else:
                         raise Exception('unable to rename stack, cannot find it: %s' % payload['stack'])
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('renameStack failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'setDefaultStack':
                 try:
                     if find_stack(self.config, payload) is not None:
@@ -344,10 +346,10 @@ class CSMessageProcessor:
                         self.config['default_stack'] = payload
                     else:
                         raise Exception('Stack named %s does not exist' % payload)
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('setDefaultStack failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'setEnabled':
                 try:
                     if 'enabled' not in payload:
@@ -423,29 +425,29 @@ class CSMessageProcessor:
                             raise Exception('trigger source named: %s does not exist' % triggername)
                     else:
                         raise Exception('bad setEnabled request')
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('setEnabled failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'command':
                 # a command coming directly through the trigger source api, useful for testing
                 try:
                     logging.info('running anonymous command from api->request->command: %s' % payload)
                     self.run_cue_command(payload)
-                    response = {'status': 'OK'}
+                    response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('command failed: %s' % ex)
-                    response = {'status': 'Exception: %s' % ex}
+                    response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             else:
-                response = {'status': 'Unknown request: %s' % request}
+                response = {'status': 'Unknown request: %s' % request, 'request_id': request_id}
         except KeyError as ex:
             msg = 'KeyError while processing request: %s' % ex
             logging.error(msg)
-            response = {'status': msg}
+            response = {'status': msg, 'request_id': request_id}
         except Exception as ex:
             msg = 'unexpected exception while handling a request %s' % ex
             logging.error(msg)
-            response = {'status': msg}
+            response = {'status': msg, 'request_id': request_id}
         return response
 
     def setup_command_targets(self):

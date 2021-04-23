@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
 /*
     CueStackClient Utility Functions
@@ -31,4 +32,16 @@ function getKeyNames(thisobject) {
     }
   }
   return options;
+}
+
+/**
+ * Generate a uuid4 (as a string) for use as request_id
+ * @return  {string} uuid
+ */
+function uuid4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    // eslint-disable-next-line one-var
+    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }

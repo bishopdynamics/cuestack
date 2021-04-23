@@ -101,6 +101,9 @@ class CSMessageProcessor:
 
     def handle_api_cuestack(self, trigger_message):
         # triggering a cue or stack
+        request_id = 0
+        if 'request_id' in trigger_message:
+            request_id = trigger_message['request_id']
         if 'stack' in trigger_message:
             logging.info('switching to cue stack: %s' % trigger_message['stack'])
             actual_stack = find_stack(self.config, trigger_message['stack'])
@@ -110,18 +113,18 @@ class CSMessageProcessor:
             else:
                 logging.error('stack not found: %s' % trigger_message['stack'])
                 logging.warning('not changing stacks')
-                return {'status': 'Stack Not Found: %s' % trigger_message['stack']}
+                return {'status': 'Stack Not Found: %s' % trigger_message['stack'], 'request_id': request_id}
         if 'cue' in trigger_message:
             logging.debug('received trigger for cue: %s' % trigger_message['cue'])
             actual_cue = find_cue(self.current_cue_stack, trigger_message['cue'])
             if actual_cue is not None:
                 if not self.start_cue_runner(actual_cue):
                     logging.error('failed to start cue runner')
-                    return {'status': 'failed to start cue runner'}
+                    return {'status': 'failed to start cue runner', 'request_id': request_id}
             else:
                 logging.error('unable to find a cue named %s in current stack' % trigger_message['cue'])
-                return {'status': 'Cue Not Found: %s' % trigger_message['cue']}
-        return {'status': 'OK'}
+                return {'status': 'Cue Not Found: %s' % trigger_message['cue'], 'request_id': request_id}
+        return {'status': 'OK', 'request_id': request_id}
 
     def start_cue_runner(self, actual_cue):
         try:

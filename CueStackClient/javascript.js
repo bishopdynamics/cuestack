@@ -65,10 +65,9 @@ function createStacksTable(data) {
     row.appendChild(td);
     button.innerHTML = 'Stack: ' + key;
     button.addEventListener('click', function() {
-      API.triggerStack(key);
-      updateCurrentStack(key);
-      API.getStacks();
-      API.getCues();
+      API.triggerStack(key, function(message) {
+        getStatus();
+      });
     });
   }
 }
@@ -82,13 +81,18 @@ function clearTable(table) {
 function updateCurrentStack(data) {
   const thing = document.querySelector('#current-stack');
   thing.innerHTML = 'Current Stack: ' + data;
-  API.getCues();
+  API.getCues(function(message) {
+    createCuesTable(message.response.cues);
+  });
 }
 
 function getStatus() {
-  API.getCurrentStack();
-  API.getStacks();
-  API.getCues();
+  API.getStacks(function(message) {
+    createStacksTable(message.response.stacks);
+    API.getCurrentStack(function(message) {
+      updateCurrentStack(message.response.currentStack);
+    });
+  });
 }
 
 function showTab(tabname) {

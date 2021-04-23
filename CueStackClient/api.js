@@ -75,6 +75,34 @@ class APIManager {
     return true;
   }
 
+  /* trigger endpoints require only what they're triggering, and a callback is optional if you dont care about the result
+      these are the exact same endpoints hit by all external triggers
+  */
+
+  /**
+   * trigger a cue
+   * @param  {string} cuename
+   * @param  {Function} callback
+   */
+  triggerCue(cuename, callback) {
+    const req = {'cue': cuename};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * trigger a stack change
+   * @param  {text} stackname
+   * @param  {Function} callback
+   */
+  triggerStack(stackname, callback) {
+    const req = {'stack': stackname};
+    this.sendMessage(req, callback);
+  }
+
+  /* get endpoints require no additional data, just a callback
+      these endpoints are indended for populating lists with names, they are NOT intended to return actual objects requested, only their names
+  */
+
   /**
    * get a list of cuenames
    * @param  {Function} callback
@@ -103,22 +131,122 @@ class APIManager {
   }
 
   /**
-   * trigger a cue
-   * @param  {string} cuename
    * @param  {Function} callback
    */
-  triggerCue(cuename, callback) {
-    const req = {'cue': cuename};
+  getTriggerSources(callback) {
+    const req = {'request': 'getTriggerSources'};
     this.sendMessage(req, callback);
   }
 
   /**
-   * trigger a stack change
-   * @param  {text} stackname
    * @param  {Function} callback
    */
-  triggerStack(stackname, callback) {
-    const req = {'stack': stackname};
+  getCommandTargets(callback) {
+    const req = {'request': 'getCommandTargets'};
+    this.sendMessage(req, callback);
+  }
+
+  /* add and set endpoints require request_payload, and the callback is technically optional, but you should always check for success
+      this is the meat of the API, allowing you to change config
+  */
+
+  /**
+   * Add a new command target
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  addCommandTarget(payload, callback) {
+    const req = {'request': 'addCommandTarget', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Add a new trigger source
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  addTriggerSource(payload, callback) {
+    const req = {'request': 'addTriggerSource', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Add a new cue, optionally copying from another
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  addCue(payload, callback) {
+    const req = {'request': 'addCue', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Delete a given cue from the given stack
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  deleteCue(payload, callback) {
+    const req = {'request': 'deleteCue', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Add a new (empty) stack
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  addStack(payload, callback) {
+    const req = {'request': 'addStack', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Rename a stack
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  renameStack(payload, callback) {
+    const req = {'request': 'renameStack', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Delete a stack (and all its cues)
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  deleteStack(payload, callback) {
+    const req = {'request': 'deleteStack', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Set the default stack to be loaded when CueStack starts
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  setDefaultStack(payload, callback) {
+    const req = {'request': 'setDefaultStack', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * Enable or Disable cue, part, target, or trigger
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  setEnabled(payload, callback) {
+    const req = {'request': 'setEnabled', 'request_payload': payload};
+    this.sendMessage(req, callback);
+  }
+
+  /**
+   * send a raw cue part to be executed immediately
+   * @param  {object} payload
+   * @param  {Function} callback
+   */
+  command(payload, callback) {
+    const req = {'request': 'command', 'request_payload': payload};
     this.sendMessage(req, callback);
   }
 }

@@ -187,23 +187,23 @@ class CSMessageProcessor:
                 for target in self.command_targets:
                     targetlist.append(target)
                 response = {'status': 'OK', 'request_id': request_id, 'response': {'commandTargets': targetlist}}
-            elif request == 'addTarget':
+            elif request == 'addCommandTarget':
                 try:
                     logging.info('adding new command target from api->request->addTarget: %s' % payload)
                     self.setup_command_target(payload)
                     response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
-                    logging.error('addTarget failed: %s' % ex)
+                    logging.error('addCommandTarget failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
-            elif request == 'addTrigger':
+            elif request == 'addTriggerSource':
                 try:
                     # TODO disabled because it does not work with our current trigger source pattern
                     logging.info('adding new trigger source from api->request->addTrigger: %s' % payload)
-                    raise Exception('api->request->addTrigger not implemented')
+                    raise Exception('api->request->addTriggerSource not implemented')
                     # self.setup_trigger_source(payload)
                     # response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
-                    logging.error('addTrigger failed: %s' % ex)
+                    logging.error('addTriggerSource failed: %s' % ex)
                     response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'addCue':
                 # add a new cue to a stack, or copy a cue, or replace a cue
@@ -344,11 +344,11 @@ class CSMessageProcessor:
                     response = {'status': 'Exception: %s' % ex, 'request_id': request_id}
             elif request == 'setDefaultStack':
                 try:
-                    if find_stack(self.config, payload) is not None:
-                        logging.info('setting default_stack to: %s' % payload)
-                        self.config['default_stack'] = payload
+                    if find_stack(self.config, payload['stack']) is not None:
+                        logging.info('setting default_stack to: %s' % payload['stack'])
+                        self.config['default_stack'] = payload['stack']
                     else:
-                        raise Exception('Stack named %s does not exist' % payload)
+                        raise Exception('Stack named %s does not exist' % payload['stack'])
                     response = {'status': 'OK', 'request_id': request_id}
                 except Exception as ex:
                     logging.error('setDefaultStack failed: %s' % ex)

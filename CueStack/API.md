@@ -40,28 +40,28 @@ The `request` key may be one of the options below; if the request needs to retur
 
 There are some options which require additional data be given in `request_payload`; these options only return `status`
 
-* `addTarget`
+* `addCommandTarget`
   - expects `"request_payload": {}`, where `{}` is a target exactly as in config.json
-* `addTrigger`
+* `addTriggerSource`
   - expects `"request_payload": {}`, where `{}` is a trigger exactly as in config.json
 * `addCue`
   - expects `"request_payload": {"stack": "stackname", "cue": {}}`, where `{}` is a cue exactly as in config.json to create, and `stackname` is the name of the stack to add it to. If needed, the stack will be created.
   - you can also copy from an existing cue: `"request_payload": {"stack": "stackname", "copyFrom": {"stack": "otherstackname", "cue": "othercuename"}, "cue": {}}`
   - you can also replace an existing cue, with a copy of another existing cue: `"request_payload": {"stack": "stackname", "replace": true, "copyFrom": {"stack": "otherstackname", "cue": "othercuename"}, "cue": {}}`
 * `deleteCue`
-  - expects `"requeset_payload": {"stack": "stackname", "cue": "cuename"}`
+  - expects `"request_payload": {"stack": "stackname", "cue": "cuename"}`
 * `addStack`
   - expects `"request_payload": {"stack": "stackname"}`, where `stackname` is the name of the stack to create
   - you can also copy from an existing stack: `"request_payload": {"stack": "stackname", "copyFrom": "otherstackname"}`
   - you cannot replace an existing stack using addStack, instead try rename or delete
 * `renameStack`
-  - expects `"requeset_payload": {"stack": "stackname", "new_name": "stacknewname"}`
+  - expects `"request_payload": {"stack": "stackname", "new_name": "stacknewname"}`
   - you cannot rename the currently active stack
 * `deleteStack`
-  - expects `"requeset_payload": {"stack": "stackname"}`
+  - expects `"request_payload": {"stack": "stackname"}`
   - you cannot delete the currently active stack
 * `setDefaultStack`
-  - expects `"request_payload": "stackname"`, where `stackname` is the name of a stack to set as default; will fail if it does not exist
+  - expects `"request_payload": {"stack": "stackname"}`, where `stackname` is the name of a stack to set as default; will fail if it does not exist
 * `setEnabled`
   - expects `"request_payload": {"enabled": state}`, where `state` is boolean `true` or `false` indicating if we are enabling or disabling something. You also need to specify what to enable/disable
   - examples: 

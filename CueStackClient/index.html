@@ -8,10 +8,10 @@
     <body class="page-body">
         <div id="tabbar">
            <button onclick='clickTab("tester");'>Tester</button>
-           <button onclick='clickTab("managestacks");'>Manage Stacks</button>
            <button onclick='clickTab("editcues");'>Edit Cues</button>
            <button onclick='clickTab("edittargets");'>Edit Command Targets</button>
            <button onclick='clickTab("edittriggers");'>Edit Trigger Sources</button>
+           <button onclick='clickTab("apitester");'>API Tester</button>
         </div>
         <div id="tabcontainer">
             <div id="tab-tester">
@@ -27,17 +27,19 @@
                 </div>
                 
             </div>
-            <div id="tab-managestacks">
-                <h1>Manage Stacks</h1>
-            </div>
             <div id="tab-editcues">
                 <h1>Edit Cues</h1>
+                <div id="tab-editcues-content"></div>
             </div>
             <div id="tab-edittargets">
                 <h1>Edit Command Targets</h1>
             </div>
             <div id="tab-edittriggers">
                 <h1>Edit Command Triggers</h1>
+            </div>
+            <div id="tab-apitester">
+                <h1>API Tester</h1>
+                <div id="tab-apitester-content"></div>
             </div>
         </div>
         <script src="templates.js"></script>

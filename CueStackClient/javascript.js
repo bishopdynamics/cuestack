@@ -10,7 +10,7 @@
 WEBSOCKET_HOST = 'localhost';
 WEBSOCKET_PORT = 8081;
 
-TABS_LIST = ['tester', 'managestacks', 'editcues', 'edittargets', 'edittriggers'];
+TABS_LIST = ['tester', 'editcues', 'edittargets', 'edittriggers', 'apitester'];
 
 API = new APIManager(WEBSOCKET_HOST, WEBSOCKET_PORT, handleMessage);
 
@@ -117,6 +117,7 @@ function testThing() {
   clickTab('edittargets');
   console.info('running testThing');
   try {
+    populateTabAPITester();
     // CueStackTemplates.trigger_sources.mqtt
     // CueStackTemplates.command_targets.mqtt_generic
     const thisobj = createFlippableInputForm(CueStackTemplates.command_targets.mqtt_generic);
@@ -125,6 +126,45 @@ function testThing() {
   } catch (e) {
     console.error('exception in testThing: ' + e);
   }
+}
+
+function populateTabAPITester() {
+  const tabcontent = document.getElementById('tab-apitester-content');
+  const requestoptions = getKeyNames(CueStackAPIRequests);
+  const requestselect = renderSelect(requestoptions, null);
+  const templateselect = renderSelect([], null);
+  const sendbutton = document.createElement('button');
+  sendbutton.innerHTML = 'Send';
+  sendbutton.addEventListener('click', function() {
+    console.log('clicked the send button');
+    // TODO read value of editorview
+  });
+  tabcontent.appendChild(requestselect);
+  tabcontent.appendChild(templateselect);
+  tabcontent.appendChild(sendbutton);
+  requestselect.addEventListener('change', function(event) {
+    const selectedoption = event.target.value;
+    console.log(selectedoption);
+    try {
+      const templates = CueStackAPIRequests[selectedoption].templates;
+      const templateoptions = getKeyNames(templates);
+      const templateselect = renderSelect(templateoptions, null);
+      tabcontent.appendChild(templateselect);
+      templateselect.addEventListener('change', function(event) {
+        const selectedoption = event.target.value;
+        console.log(selectedoption);
+        try {
+          const template = templates[selectedoption];
+          const editorview = createFlippableInputForm(template);
+          tabcontent.appendChild(editorview);
+        } catch (e) {
+          console.error('failed to render template: ', e);
+        }
+      });
+    } catch (e) {
+      console.error('exception while generating select for this api request ', e);
+    }
+  });
 }
 
 function setupEverything() {

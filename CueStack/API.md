@@ -67,8 +67,8 @@ There are some options which require additional data be given in `request_payloa
   - examples: 
     - cue: `"request_payload": {"enabled": false, "cue": {"stack": "stackname", "cue": "cuename"}}`
     - part: `"request_payload": {"enabled": false, "part": {"stack": "stackname", "cue": "cuename", "part": partnumber}}` (note `partnumber` is an integer)
-    - target: `"request_payload": {"enabled": true, "target": {"name": "targetname"}}`
-    - trigger: `"request_payload": {"enabled": true, "trigger": {"name": "triggername"}}` (note that if you disable the trigger source you're using for the API, you will lose access to the API, and it will not return a response)
+    - target: `"request_payload": {"enabled": true, "commandTarget": {"name": "targetname"}}`
+    - trigger: `"request_payload": {"enabled": true, "triggerSource": {"name": "triggername"}}` (note that if you disable the trigger source you're using for the API, you will lose access to the API, and it will not return a response)
   - In the event that something is already enabled/disabled, CueStack will take no action without returning an error
 * `command`
   - expects `"request_payload": {}`, where `{}` is a command exactly as in a cue part, in config.json. This is also known as an anonymous cue part, or an ad-hoc command.

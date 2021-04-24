@@ -394,7 +394,7 @@ class CSMessageProcessor:
                                 raise Exception('unable to find cue: %s in stack: %s' % (cuename, stackname))
                         else:
                             raise Exception('unable to find stack: %s' % stackname)
-                    elif 'target' in payload:
+                    elif 'commandTarget' in payload:
                         targetname = payload['target']['name']
                         if find_target(self.config, targetname) is not None:
                             if find_target(self.config, targetname)['enabled'] == enabled:
@@ -410,7 +410,7 @@ class CSMessageProcessor:
                                     self.command_targets.pop(targetname)
                         else:
                             raise Exception('command target named: %s does not exist' % targetname)
-                    elif 'trigger' in payload:
+                    elif 'triggerSource' in payload:
                         # TODO not implemented because it does not work with our current trigger source pattern
                         triggername = payload['trigger']['name']
                         if find_trigger(self.config, triggername) is not None:

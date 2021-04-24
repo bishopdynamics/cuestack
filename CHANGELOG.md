@@ -1,5 +1,10 @@
 0.1.3
-* WIP
+* extend and reorg data api endpoints:
+  - addTrigger -> addTriggerSource
+  - addTarget -> addCommandTarget
+  - setEnabled >[ trigger -> triggerSource, target -> commandTarget]
+* js api library now has proper request -> response callback framework
+ 
 
 0.1.2
 * CueStack 

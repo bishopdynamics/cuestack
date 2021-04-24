@@ -1,12 +1,40 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable max-len */
 /*
     CueStackClient Templates
 
     Copyright (C) 2021 James Bishop (james@bishopdynamics.com)
 */
 
-// eslint-disable-next-line no-unused-vars
+/* Templates used for UI
+*/
 const CueStackTemplates = {
-  trigger_sources: {
+  enableabels: { // things which can be enabled/disabled
+    cue: {
+      cue: {
+        stack: null,
+        cue: null,
+      },
+    },
+    part: {
+      part: {
+        stack: null,
+        cue: null,
+        part: null,
+      },
+    },
+    commandTarget: {
+      commandTarget: {
+        name: null,
+      },
+    },
+    triggerSource: {
+      triggerSource: {
+        name: null,
+      },
+    },
+  },
+  trigger_sources: { // Trigger Sources
     websocket: {
       enabled: true,
       name: 'GenericWebsocket',
@@ -34,7 +62,7 @@ const CueStackTemplates = {
       },
     },
   },
-  command_targets: {
+  command_targets: { // Command Targets
     websocket_generic: {
       enabled: true,
       name: 'WebsocketTarget',
@@ -268,3 +296,91 @@ const CueStackTemplates = {
   },
 };
 
+/* template logic:
+      if template is an array, its a list of multiple valid templates
+      if a template is an object, the first level keys are identifiers for multiple template options
+*/
+const CueStackAPIRequests = {
+  getCues: {
+    templates: null,
+  },
+  getStacks: {
+    templates: null,
+  },
+  getCurrentStack: {
+    templates: null,
+  },
+  getTriggerSources: {
+    templates: null,
+  },
+  getCommandTargets: {
+    templates: null,
+  },
+  addCommandTarget: {
+    templates: CueStackTemplates.command_targets,
+  },
+  addTriggerSource: {
+    templates: CueStackTemplates.trigger_sources,
+  },
+  addCue: {
+    templates: {
+      add: {
+        stack: null,
+        cue: '',
+        replace: false,
+      },
+      copy: {
+        stack: null,
+        cue: '',
+        copyFrom: {
+          stack: null,
+          cue: null,
+        },
+        replace: false,
+      },
+    },
+  },
+  deleteCue: {
+    templates: {
+      default: {
+        stack: null,
+        cue: null,
+      },
+    },
+  },
+  addStack: {
+    templates: {
+      default: {
+        stack: '',
+      },
+    },
+  },
+  deleteStack: {
+    templates: {
+      default: {
+        stack: '',
+      },
+    },
+  },
+  renameStack: {
+    templates: {
+      default: {
+        stack: null,
+        new_name: '',
+      },
+    },
+  },
+  setDefaultStack: {
+    templates: {
+      default: {
+        stack: null,
+      },
+    },
+  },
+  setEnabled: {
+    templates: CueStackTemplates.enableabels,
+  },
+  command: {
+    templates: CueStackTemplates.cue_parts,
+  },
+};

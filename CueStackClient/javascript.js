@@ -132,7 +132,7 @@ function populateTabAPITester() {
   const tabcontent = document.getElementById('tab-apitester-content');
   const requestoptions = getKeyNames(CueStackAPIRequests);
   const requestselect = renderSelect(requestoptions, null);
-  const templateselect = renderSelect([], null);
+  let templateselect = renderSelect([], null);
   const sendbutton = document.createElement('button');
   sendbutton.innerHTML = 'Send';
   sendbutton.addEventListener('click', function() {
@@ -148,7 +148,7 @@ function populateTabAPITester() {
     try {
       const templates = CueStackAPIRequests[selectedoption].templates;
       const templateoptions = getKeyNames(templates);
-      const templateselect = renderSelect(templateoptions, null);
+      templateselect = renderSelect(templateoptions, null);
       tabcontent.appendChild(templateselect);
       templateselect.addEventListener('change', function(event) {
         const selectedoption = event.target.value;

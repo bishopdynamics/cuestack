@@ -119,6 +119,9 @@ function buildDataTree(inputobject, datatree = null) {
         } else if (typeof value == 'string') {
           input = createTextInput(value);
           datatree[key] = input;
+        } else if (value === null) {
+          input = createTextInput(value);
+          datatree[key] = input;
         } else if (typeof value == 'object') {
           datatree[key] = buildDataTree(value, datatree[key]);
         }

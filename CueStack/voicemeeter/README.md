@@ -1,5 +1,6 @@
 # Voicemeeter Remote
 taken from here: https://github.com/chvolkmann/voicemeeter-remote-python
+The original software has no license
 
 A Python API to [Voicemeeter](https://www.vb-audio.com/Voicemeeter/potato.htm), a virtual audio mixer for Windows.
 

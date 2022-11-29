@@ -37,8 +37,11 @@ There are no prebuilt ViscaAgent binaries for Windows, as it is not supported on
 
 You may need to install [Visual C++ Redist 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145), 
 but this is probably only needed for older versions of Windows.
+<<<<<<< HEAD
 
 CueStackClient is incomplete; it was intended to be a web-based frontend for configuring CueStack, instead of using the config files. I found the config files (and a proper editor) served the purpose just fine, and so I never finished CueStackClient.
+=======
+>>>>>>> 40f7bd66a293f267f51d38b190356c445f647ba1
 
 ## Running from source on Windows
 

@@ -1,10 +1,13 @@
 # Notes
 
+<<<<<<< HEAD
 
 ## November 11, 2022
 
 Changed license to AGPL and released to public.
 
+=======
+>>>>>>> 40f7bd66a293f267f51d38b190356c445f647ba1
 ## May 27th, 2022
 
 After uploading NetbootStudio to github, saw this repo and decided to take a look.
